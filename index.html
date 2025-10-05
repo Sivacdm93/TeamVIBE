@@ -26,7 +26,7 @@
     }
     h1 {
       display: block;
-      font-size: 120px;       /* Bigger Title */
+      font-size: 120px;
       margin: 25px 0 15px;
       font-weight: 900;
       text-align: center;
@@ -37,7 +37,7 @@
     }
     .quote {
       display: block;
-      font-size: 26px;        /* Bigger Quote */
+      font-size: 26px;
       font-style: italic;
       margin-top: 10px;
       text-align: center;
@@ -58,6 +58,57 @@
     .total { background: #2563eb; }
     .used { background: #ef4444; }
     .available { background: #22c55e; }
+
+    /* Filters */
+    .filters {
+      margin: 20px auto;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .filters input, .filters select, .filters button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #1e293b;
+      color: white;
+    }
+
+    /* Grid */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .card {
+      background: #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      padding: 10px;
+      text-align: left;
+    }
+    .card h3 {
+      font-size: 18px;
+      margin: 8px 0;
+    }
+    .card a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+    .used-btn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #374151;
+      color: white;
+    }
+    .used-btn.used {
+      background: #ef4444;
+    }
 
     /* Animations */
     @keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-15px);} }
@@ -95,13 +146,37 @@
     <button id="editButton" class="used-btn">🔒 Edit</button>
   </div>
 
-  <div id="grid"></div>
+  <!-- Filters -->
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Search games...">
+    <select id="platformSelect">
+      <option value="all">All platforms</option>
+      <option value="instagram">Instagram</option>
+      <option value="youtube">YouTube</option>
+    </select>
+    <select id="statusSelect">
+      <option value="all">All status</option>
+      <option value="available">Available</option>
+      <option value="used">Used</option>
+    </select>
+    <select id="categorySelect">
+      <option value="all">All categories</option>
+    </select>
+    <button id="clearFilters">Clear</button>
+  </div>
 
-  <!-- keep using your existing script.js -->
+  <!-- Results note -->
+  <div id="resultsNote" style="margin:10px;color:#bbb;font-size:14px;"></div>
+
+  <!-- Game grid -->
+  <div id="grid"></div>
+  <div id="empty" style="display:none;color:#aaa;padding:20px;">No results match your filters.</div>
+
+  <!-- Link to your main script -->
   <script src="script.js"></script>
 
   <script>
-    // Animations randomizer
+    // Animations randomizer for title & quote
     const title=document.querySelector('h1');
     const quote=document.querySelector('.quote');
     const titleAnims=['bounce','rotate','slideLR','popup'];
