@@ -1,127 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Team VIBE</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
   <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      text-align: center;
+    :root{
+      --bg:#0f172a; --panel:#111827; --card:#1f2937; --text:#e5e7eb; --muted:#94a3b8;
+      --blue:#2563eb; --green:#22c55e; --red:#f87171; --border:#263042;
     }
-    header {
-      padding: 20px;
-    }
-    header img {
-      width: 100%;
-      max-width: 800px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-    }
-    header h1 {
-      font-size: 110px;
-      margin: 0;
-      background: linear-gradient(90deg, #60a5fa, #f472b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: floatTitle 6s infinite ease-in-out;
-    }
-    header p {
-      font-size: 28px;
-      font-style: italic;
-      color: #cbd5e1;
-      margin-top: 10px;
-      animation: fadeQuote 6s infinite ease-in-out;
-    }
-    @keyframes floatTitle {
-      0% { transform: rotate(0deg); }
-      25% { transform: rotate(5deg); }
-      50% { transform: rotate(-5deg); }
-      75% { transform: scale(1.1); }
-      100% { transform: rotate(0deg) scale(1); }
-    }
-    @keyframes fadeQuote {
-      0% { opacity: 1; transform: translateY(0); }
-      50% { opacity: 0.7; transform: translateY(-10px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+    header{padding:18px 12px 8px;text-align:center}
+    header img{width:100%;max-width:1000px;border-radius:18px;display:block;margin:0 auto 14px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+    h1{margin:6px 0 6px;font-size:64px;line-height:1.05;background:linear-gradient(90deg,#60a5fa,#a78bfa,#f472b6,#60a5fa);-webkit-background-clip:text;background-clip:text;color:transparent;animation:grad 7s ease-in-out infinite alternate}
+    @media(min-width:768px){h1{font-size:96px}}
+    @media(min-width:1200px){h1{font-size:110px}}
+    .quote{color:var(--muted);font-style:italic;font-size:18px;margin-bottom:10px;animation:fadeUp 1s ease-out both}
+    .topbar{max-width:1200px;margin:0 auto 10px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+    .pill{padding:10px 16px;border-radius:22px;font-weight:800}
+    .pill.total{background:var(--blue)}
+    .pill.used{background:var(--red)}
+    .pill.available{background:var(--green)}
+    .edit-btn{margin-left:10px;border:1px solid var(--border);background:#0d1728;color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
+    .edit-btn.active{background:var(--green);color:#0f172a;font-weight:800}
 
-    .counts {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin: 20px 0;
-    }
-    .count-box {
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-weight: bold;
-    }
-    .total { background: #2563eb; }
-    .used { background: #f87171; }
-    .available { background: #22c55e; }
+    main{max-width:1200px;margin:0 auto;padding:12px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .card{grid-column:span 12;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    @media(min-width:640px){.card{grid-column:span 6}}
+    @media(min-width:1024px){.card{grid-column:span 4}}
 
-    #grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-      padding: 20px;
-      max-width: 1200px;
-      margin: auto;
-    }
-    .card {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 12px;
-      text-align: left;
-    }
-    .used-btn {
-      margin-top: 8px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      border: none;
-    }
-    .used-btn.used {
-      background: #f87171;
-      color: white;
-    }
-    .edit {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #1e293b;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+    .media{padding:0 10px}
+    /* Instagram blockquote is auto-sized by their JS; let it be full width */
+    blockquote.instagram-media{margin:0 auto !important;max-width:540px !important;width:100% !important;border:0 !important;box-shadow:none !important;background:#fff !important}
+
+    .meta{padding:12px}
+    .title{font-size:18px;font-weight:700;margin:0 0 8px}
+    .url{font-size:12px;color:var(--muted);word-break:break-all}
+    .actions{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);flex-wrap:wrap}
+    .btn{appearance:none;border:1px solid var(--border);background:#0d1728;color:var(--text);padding:6px 10px;border-radius:999px;font-size:12px;text-decoration:none;cursor:pointer}
+    .btn.primary{background:var(--green);border-color:transparent;color:#0f172a;font-weight:800}
+    .used-btn.used{background:var(--red);color:#0f172a;border-color:transparent}
+    .used-btn.disabled{opacity:.5;pointer-events:none}
+
+    .empty{color:var(--muted);text-align:center;border:1px dashed var(--border);border-radius:10px;padding:28px;margin:12px}
+
+    @keyframes grad{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+    @keyframes fadeUp{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
   </style>
+  <!-- Instagram embed runtime -->
+  <script async src="https://www.instagram.com/embed.js"></script>
 </head>
 <body>
   <header>
     <img src="Fun.jpg" alt="Team VIBE Banner">
     <h1>Team VIBE</h1>
-    <p>"Valuing Ideas ,Building engagement"</p>
+    <div class="quote">“Valuing Ideas ,Building engagement”</div>
   </header>
 
-  <div class="counts">
-    <div class="count-box total">Total: <span id="totalCount">0</span></div>
-    <div class="count-box used">Used: <span id="usedCount">0</span></div>
-    <div class="count-box available">Available: <span id="availableCount">0</span></div>
+  <div class="topbar">
+    <div class="pill total" id="count-total">Total: —</div>
+    <div class="pill used" id="count-used">Used: —</div>
+    <div class="pill available" id="count-available">Available: —</div>
+    <button id="editToggle" class="edit-btn" title="Enable editing to toggle Used">🔒 Edit</button>
   </div>
 
-  <div id="grid"></div>
+  <main>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" style="display:none;">No links yet. Add some in <code>script.js</code>.</div>
+  </main>
 
-  <div class="edit">Edit</div>
-
-  <!-- Instagram embed script -->
-  <script async src="//www.instagram.com/embed.js"></script>
-  <!-- Our logic -->
   <script src="script.js"></script>
 </body>
 </html>
