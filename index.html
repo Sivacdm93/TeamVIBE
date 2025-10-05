@@ -9,6 +9,7 @@
     :root{
       --bg:#0f172a; --panel:#111827; --card:#1f2937; --text:#e5e7eb; --muted:#94a3b8;
       --blue:#2563eb; --green:#22c55e; --red:#f87171; --border:#263042;
+      --chip:#0d1728;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
@@ -18,6 +19,7 @@
     @media(min-width:768px){h1{font-size:96px}}
     @media(min-width:1200px){h1{font-size:110px}}
     .quote{color:var(--muted);font-style:italic;font-size:18px;margin-bottom:10px;animation:fadeUp 1s ease-out both}
+
     .topbar{max-width:1200px;margin:0 auto 10px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
     .pill{padding:10px 16px;border-radius:22px;font-weight:800}
     .pill.total{background:var(--blue)}
@@ -26,6 +28,18 @@
     .edit-btn{margin-left:10px;border:1px solid var(--border);background:#0d1728;color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
     .edit-btn.active{background:var(--green);color:#0f172a;font-weight:800}
 
+    .filters{max-width:1200px;margin:0 auto 6px;padding:0 12px 8px}
+    .filters .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+    .input, .select{
+      background:#0d1728;border:1px solid var(--border);color:var(--text);
+      padding:10px 12px;border-radius:10px;font-size:14px;outline:none;
+    }
+    .input{min-width:220px}
+    .select{min-width:160px}
+    .clear-btn{border:1px solid var(--border);background:#0d1728;color:var(--muted);padding:8px 10px;border-radius:10px;cursor:pointer}
+
+    .results-note{max-width:1200px;margin:6px auto 0;color:var(--muted);text-align:center;font-size:13px}
+
     main{max-width:1200px;margin:0 auto;padding:12px}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
     .card{grid-column:span 12;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
@@ -33,12 +47,14 @@
     @media(min-width:1024px){.card{grid-column:span 4}}
 
     .media{padding:0 10px}
-    /* Instagram blockquote is auto-sized by their JS; let it be full width */
     blockquote.instagram-media{margin:0 auto !important;max-width:540px !important;width:100% !important;border:0 !important;box-shadow:none !important;background:#fff !important}
 
     .meta{padding:12px}
     .title{font-size:18px;font-weight:700;margin:0 0 8px}
     .url{font-size:12px;color:var(--muted);word-break:break-all}
+    .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .chip{background:var(--chip);border:1px solid var(--border);padding:4px 8px;border-radius:999px;font-size:11px;color:var(--muted)}
+
     .actions{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);flex-wrap:wrap}
     .btn{appearance:none;border:1px solid var(--border);background:#0d1728;color:var(--text);padding:6px 10px;border-radius:999px;font-size:12px;text-decoration:none;cursor:pointer}
     .btn.primary{background:var(--green);border-color:transparent;color:#0f172a;font-weight:800}
@@ -50,7 +66,6 @@
     @keyframes grad{0%{background-position:0% 50%}100%{background-position:100% 50%}}
     @keyframes fadeUp{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
   </style>
-  <!-- Instagram embed runtime -->
   <script async src="https://www.instagram.com/embed.js"></script>
 </head>
 <body>
@@ -67,9 +82,31 @@
     <button id="editToggle" class="edit-btn" title="Enable editing to toggle Used">🔒 Edit</button>
   </div>
 
+  <div class="filters">
+    <div class="row">
+      <input id="searchInput" class="input" placeholder="Search games..." />
+      <select id="platformSelect" class="select">
+        <option value="all">All platforms</option>
+        <option value="instagram">Instagram</option>
+        <option value="youtube">YouTube</option>
+      </select>
+      <select id="statusSelect" class="select">
+        <option value="all">All status</option>
+        <option value="available">Available</option>
+        <option value="used">Used</option>
+      </select>
+      <select id="categorySelect" class="select">
+        <option value="all">All categories</option>
+      </select>
+      <button id="clearFilters" class="clear-btn">Clear</button>
+    </div>
+  </div>
+
+  <div class="results-note" id="resultsNote"></div>
+
   <main>
     <div id="grid" class="grid"></div>
-    <div id="empty" class="empty" style="display:none;">No links yet. Add some in <code>script.js</code>.</div>
+    <div id="empty" class="empty" style="display:none;">No links match your filters. Try clearing filters or searching something else.</div>
   </main>
 
   <script src="script.js"></script>
