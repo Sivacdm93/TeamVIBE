@@ -109,9 +109,9 @@
 
   <!-- Counts + Edit -->
   <div class="counts">
-    <div class="pill total">Total: <span id="totalCount">0</span></div>
-    <div class="pill used">Used: <span id="usedCount">0</span></div>
-    <div class="pill available">Available: <span id="availableCount">0</span></div>
+    <div class="pill total">Total: <span id="count-total">0</span></div>
+    <div class="pill used">Used: <span id="count-used">0</span></div>
+    <div class="pill available">Available: <span id="count-available">0</span></div>
     <button id="editToggle" class="edit-btn">🔒 Edit</button>
   </div>
 
@@ -144,7 +144,7 @@
   <!-- Your main logic -->
   <script src="script.js" defer></script>
 
-  <!-- Title & quote animation randomizer -->
+  <!-- Title & quote animation randomizer (page-level; harmless even if script.js also animates) -->
   <script>
     const title = document.querySelector('h1');
     const quote = document.querySelector('.quote');
