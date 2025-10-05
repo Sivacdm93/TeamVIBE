@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Team VIBE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      padding: 20px;
+    }
+    header img {
+      width: 100%;
+      max-width: 800px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 110px;
+      margin: 0;
+      background: linear-gradient(90deg, #60a5fa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: floatTitle 6s infinite ease-in-out;
+    }
+    header p {
+      font-size: 28px;
+      font-style: italic;
+      color: #cbd5e1;
+      margin-top: 10px;
+      animation: fadeQuote 6s infinite ease-in-out;
+    }
+    @keyframes floatTitle {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      50% { transform: rotate(-5deg); }
+      75% { transform: scale(1.1); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+    @keyframes fadeQuote {
+      0% { opacity: 1; transform: translateY(0); }
+      50% { opacity: 0.7; transform: translateY(-10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .counts {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .count-box {
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+    .total { background: #2563eb; }
+    .used { background: #f87171; }
+    .available { background: #22c55e; }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: left;
+    }
+    .used-btn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+    }
+    .used-btn.used {
+      background: #f87171;
+      color: white;
+    }
+    .edit {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1e293b;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="Fun.jpg" alt="Team VIBE Banner">
+    <h1>Team VIBE</h1>
+    <p>"Valuing Ideas ,Building engagement"</p>
+  </header>
+
+  <div class="counts">
+    <div class="count-box total">Total: <span id="totalCount">0</span></div>
+    <div class="count-box used">Used: <span id="usedCount">0</span></div>
+    <div class="count-box available">Available: <span id="availableCount">0</span></div>
+  </div>
+
+  <div id="grid"></div>
+
+  <div class="edit">Edit</div>
+
+  <!-- Instagram embed script -->
+  <script async src="//www.instagram.com/embed.js"></script>
+  <!-- Our logic -->
+  <script src="script.js"></script>
+</body>
+</html>
