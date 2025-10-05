@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Team VIBE</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
@@ -15,18 +15,16 @@
     }
 
     /* Header */
-    .header {
-      margin-top: 20px;
-    }
+    .header { margin-top: 20px; }
     .header img {
-      max-width: 800px;
+      max-width: 1000px;
       width: 100%;
       border-radius: 20px;
       margin-bottom: 20px;
     }
     h1 {
       display: block;
-      font-size: 120px;
+      font-size: 120px;        /* big title */
       margin: 25px 0 15px;
       font-weight: 900;
       text-align: center;
@@ -34,6 +32,9 @@
       background: linear-gradient(90deg, #6a5acd, #ff69b4);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      animation-duration: 4s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
     }
     .quote {
       display: block;
@@ -42,37 +43,29 @@
       margin-top: 10px;
       text-align: center;
       color: #ddd;
+      animation-duration: 4s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
     }
 
-    /* Counts */
-    .counts {
-      margin: 20px 0;
+    /* Counts row */
+    .counts { margin: 20px 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    .counts .pill {
+      padding: 10px 16px; border-radius: 22px; font-weight: 800; display:inline-block;
     }
-    .counts span {
-      padding: 8px 16px;
-      border-radius: 20px;
-      margin: 0 8px;
-      font-weight: bold;
-      display: inline-block;
+    .pill.total      { background: #2563eb; }
+    .pill.used       { background: #ef4444; }
+    .pill.available  { background: #22c55e; }
+    .edit-btn {
+      border: 1px solid #333; background:#162033; color:#fff; padding: 10px 14px; border-radius: 10px; cursor:pointer;
     }
-    .total { background: #2563eb; }
-    .used { background: #ef4444; }
-    .available { background: #22c55e; }
 
     /* Filters */
     .filters {
-      margin: 20px auto;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
+      margin: 20px auto; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
     }
     .filters input, .filters select, .filters button {
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #1e293b;
-      color: white;
+      padding: 8px 12px; border-radius: 8px; border: 1px solid #444; background: #1e293b; color: white;
     }
 
     /* Grid */
@@ -81,34 +74,14 @@
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 20px;
       padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto 40px;
     }
-    .card {
-      background: #1f2937;
-      border-radius: 12px;
-      overflow: hidden;
-      padding: 10px;
-      text-align: left;
-    }
-    .card h3 {
-      font-size: 18px;
-      margin: 8px 0;
-    }
-    .card a {
-      color: #60a5fa;
-      text-decoration: none;
-    }
-    .used-btn {
-      margin-top: 8px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      background: #374151;
-      color: white;
-    }
-    .used-btn.used {
-      background: #ef4444;
-    }
+    .card { background: #1f2937; border-radius: 12px; overflow: hidden; padding: 10px; text-align: left; }
+    .card h3 { font-size: 18px; margin: 8px 0; }
+    .card a { color: #60a5fa; text-decoration: none; }
+    .used-btn { margin-top: 8px; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; background: #374151; color: white; }
+    .used-btn.used { background: #ef4444; }
 
     /* Animations */
     @keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-15px);} }
@@ -117,18 +90,13 @@
     @keyframes popup { 0%{transform:scale(1);}50%{transform:scale(1.15);}100%{transform:scale(1);} }
     @keyframes fadeInOut { 0%,100%{opacity:0;transform:translateY(10px);}50%{opacity:1;transform:translateY(0);} }
 
-    h1, .quote {
-      animation-duration: 4s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
-    }
-
     /* Responsive */
     @media(max-width: 768px){
       h1 { font-size: 64px; }
       .quote { font-size: 18px; }
     }
   </style>
+  <!-- Instagram embed runtime -->
   <script async src="https://www.instagram.com/embed.js"></script>
 </head>
 <body>
@@ -139,16 +107,17 @@
     <div class="quote">“Valuing Ideas, Building engagement”</div>
   </div>
 
+  <!-- Counts + Edit -->
   <div class="counts">
-    <span class="total">Total: <span id="totalCount">0</span></span>
-    <span class="used">Used: <span id="usedCount">0</span></span>
-    <span class="available">Available: <span id="availableCount">0</span></span>
-    <button id="editButton" class="used-btn">🔒 Edit</button>
+    <div class="pill total">Total: <span id="totalCount">0</span></div>
+    <div class="pill used">Used: <span id="usedCount">0</span></div>
+    <div class="pill available">Available: <span id="availableCount">0</span></div>
+    <button id="editToggle" class="edit-btn">🔒 Edit</button>
   </div>
 
   <!-- Filters -->
   <div class="filters">
-    <input type="text" id="searchInput" placeholder="Search games...">
+    <input type="text" id="searchInput" placeholder="Search games..." />
     <select id="platformSelect">
       <option value="all">All platforms</option>
       <option value="instagram">Instagram</option>
@@ -172,19 +141,19 @@
   <div id="grid"></div>
   <div id="empty" style="display:none;color:#aaa;padding:20px;">No results match your filters.</div>
 
-  <!-- Link to your main script -->
-  <script src="script.js"></script>
+  <!-- Your main logic -->
+  <script src="script.js" defer></script>
 
+  <!-- Title & quote animation randomizer -->
   <script>
-    // Animations randomizer for title & quote
-    const title=document.querySelector('h1');
-    const quote=document.querySelector('.quote');
-    const titleAnims=['bounce','rotate','slideLR','popup'];
-    const quoteAnims=['fadeInOut','bounce','slideLR','popup'];
-    function randomAnim(el,anims){ el.style.animationName=anims[Math.floor(Math.random()*anims.length)]; }
+    const title = document.querySelector('h1');
+    const quote = document.querySelector('.quote');
+    const titleAnims = ['bounce','rotate','slideLR','popup'];
+    const quoteAnims = ['fadeInOut','bounce','slideLR','popup'];
+    function randomAnim(el, arr){ if(!el) return; el.style.animationName = arr[Math.floor(Math.random()*arr.length)]; }
+    randomAnim(title,titleAnims); randomAnim(quote,quoteAnims);
     setInterval(()=>randomAnim(title,titleAnims),4000);
     setInterval(()=>randomAnim(quote,quoteAnims),5000);
-    randomAnim(title,titleAnims); randomAnim(quote,quoteAnims);
   </script>
 </body>
 </html>
