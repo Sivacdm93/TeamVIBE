@@ -326,4 +326,26 @@ editBtn.addEventListener('click', () => {
       syncButtonsFromStore();
     }catch{}
   }, 30000);
+  /*******************
+ * TITLE & QUOTE ANIMATIONS
+ *******************/
+const title = document.querySelector('h1');
+const quote = document.querySelector('.quote');
+
+const titleAnims = ['bounce','rotate','slideLR','popup'];
+const quoteAnims = ['fadeInOut','bounce','slideLR','popup'];
+
+function randomAnim(el, anims){
+  if(!el) return;
+  const anim = anims[Math.floor(Math.random()*anims.length)];
+  el.style.animationName = anim;
+}
+
+setInterval(()=> randomAnim(title,titleAnims), 4000);
+setInterval(()=> randomAnim(quote,quoteAnims), 5000);
+
+// run immediately on load
+randomAnim(title,titleAnims);
+randomAnim(quote,quoteAnims);
+
 })();
