@@ -1,13 +1,13 @@
 /*******************
  * CONFIG
  *******************/
-const STORE_URL = 'https://script.google.com/macros/s/AKfycbxiCAQIKEhbBz1a5AYAGAnIx5cQYh52aePJnbMgaBE-a1a7WmTiDDJ35sIj1PmYKn_TBg/exec';   // <-- replace with your Apps Script /exec URL
+const STORE_URL = 'https://script.google.com/macros/s/AKfycbwEqA1sh2ju6TXnwy5oaj0XJ27OXWPanHIZzz_AaxZeU4dJG1ofA3QvGKO2VH_V_vjTmg/exec';   // <-- paste your Apps Script /exec URL
 const STORE_KEY = '258006';               // must match ADMIN_KEY in Apps Script
-const EDIT_PIN  = '258006';               // Edit PIN for UI
+const EDIT_PIN  = '258006';
 const nocache   = () => `&t=${Date.now()}`;
 
 /*******************
- * DEFAULT DATA (used to bootstrap server if empty)
+ * DEFAULT DATA (used only to bootstrap server if empty)
  *******************/
 const defaultItems = [
   { title: "Drop the Pen in bottle using Mobile camera", url: "https://www.instagram.com/reel/DNP0ZztvnvZ/?igsh=M3h2M3Z5eGE2amlw" },
@@ -45,8 +45,8 @@ const defaultItems = [
 /*******************
  * STATE
  *******************/
-let items = [];               // server-provided list
-let usedStore = new Set();    // server-provided used URLs
+let items = [];               // server list
+let usedStore = new Set();    // server used URLs
 let adminEnabled = false;
 
 const filterState = { q:'', platform:'all', status:'all', category:'all' };
@@ -54,36 +54,27 @@ const filterState = { q:'', platform:'all', status:'all', category:'all' };
 /*******************
  * SERVER API
  *******************/
-// GET both items and used
 async function apiGet(){
   const res = await fetch(`${STORE_URL}?action=get${nocache()}`);
   if(!res.ok) throw new Error('get failed');
   return res.json();
 }
-
-// SET used array
 async function apiSetUsed(arr){
   const payload = encodeURIComponent(JSON.stringify(arr));
   const res = await fetch(`${STORE_URL}?action=setUsed&key=${encodeURIComponent(STORE_KEY)}&data=${payload}${nocache()}`);
   const j = await res.json().catch(()=>({}));
-  if(!res.ok || j.ok===false) throw new Error('setUsed failed');
+  if(!res.ok || j.ok===false) throw new Error(j.error||'setUsed failed');
 }
-
-// ADD a single item (title,url,cats?)
 async function apiAddItem(item){
   const cats = item.cats ? encodeURIComponent(JSON.stringify(item.cats)) : '';
   const res = await fetch(`${STORE_URL}?action=addItem&key=${encodeURIComponent(STORE_KEY)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}${cats?`&cats=${cats}`:''}${nocache()}`);
-  const j = await res.json();
-  if(!res.ok || j.ok===false) throw new Error(j.error||'addItem failed');
-  return j.item; // returns the saved item
+  const j = await res.json().catch(()=>({}));
+  if(!res.ok || j.ok===false) throw new Error(j.error||'unknown action');
+  return j.item;
 }
-
-// Initialize items if server empty
 async function apiInitItemsIfEmpty(){
   const payload = encodeURIComponent(JSON.stringify(defaultItems));
-  const res = await fetch(`${STORE_URL}?action=setItemsIfEmpty&key=${encodeURIComponent(STORE_KEY)}&data=${payload}${nocache()}`);
-  // Returns ok:true if it set, or ok:true alreadyHad:true if data existed.
-  await res.json();
+  await fetch(`${STORE_URL}?action=setItemsIfEmpty&key=${encodeURIComponent(STORE_KEY)}&data=${payload}${nocache()}`);
 }
 
 /*******************
@@ -154,10 +145,13 @@ function writeFiltersToURL(){
  * RENDER
  *******************/
 function updateCounts(){
-  const total=items.length, used=[...usedStore].length, avail=total-used;
-  document.getElementById('count-total').textContent=total;
-  document.getElementById('count-used').textContent=used;
-  document.getElementById('count-available').textContent=avail;
+  const total = items.length;
+  // count only URLs that exist in items (fix for mismatch)
+  const used = items.filter(i => usedStore.has(i.url)).length;
+  const avail = total - used;
+  document.getElementById('count-total').textContent = total;
+  document.getElementById('count-used').textContent = used;
+  document.getElementById('count-available').textContent = avail;
 }
 
 function makeCard(item){
@@ -262,30 +256,19 @@ function initFilters(){
 function showAddUI(show){ document.getElementById('addWrap').style.display = show ? 'block' : 'none'; }
 async function addGame(title,url){
   if(!title || !url) return alert('Please provide both title and URL');
+  if(!/^https?:\/\//i.test(url)) return alert('URL must start with http(s)');
   try{
-    // avoid duplicates by URL
     if(items.some(i => i.url.trim() === url.trim())) return alert('This URL already exists.');
     const saved = await apiAddItem({ title: title.trim(), url: url.trim(), cats: autoCats(title) });
     items.push(saved);
     renderGrid(); updateCounts();
-  }catch(e){ alert('Add failed: ' + e.message); }
-}
-
-/*******************
- * EXPORTS
- *******************/
-function downloadJSON(filename, obj){
-  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href);
-}
-function exportAll(){ downloadJSON('teamvibe_all.json', items); }
-function exportFiltered(){ downloadJSON('teamvibe_filtered.json', items.filter(passesFilters)); }
-function exportUsed(){ downloadJSON('teamvibe_used.json', items.filter(i=>usedStore.has(i.url))); }
-function exportAvail(){ downloadJSON('teamvibe_available.json', items.filter(i=>!usedStore.has(i.url))); }
-function exportCategory(){
-  const cat=filterState.category==='all'?'All':filterState.category;
-  const arr=filterState.category==='all'? items : items.filter(i=>(i.cats||autoCats(i.title)).includes(filterState.category));
-  downloadJSON(`teamvibe_category_${cat}.json`, arr);
+  }catch(e){
+    if(String(e.message).includes('unknown action')){
+      alert('Add failed: unknown action\n\nYour Apps Script is still the OLD version. Replace it with the new Code.gs (with addItem) and redeploy, then paste the new /exec URL into script.js.');
+    }else{
+      alert('Add failed: ' + e.message);
+    }
+  }
 }
 
 /*******************
@@ -297,37 +280,29 @@ editBtn.addEventListener('click', () => {
   const pin=prompt('Enter Edit PIN'); if(pin && pin.trim()===EDIT_PIN){ adminEnabled=true; editBtn.textContent='✅ Editing'; showAddUI(true); }
   else alert('Wrong PIN');
 });
-
 document.getElementById('addBtn').addEventListener('click', ()=>{
   if(!adminEnabled) return;
   addGame(document.getElementById('addTitle').value, document.getElementById('addURL').value);
   document.getElementById('addTitle').value=''; document.getElementById('addURL').value='';
 });
 
-document.getElementById('exportAll').onclick=exportAll;
-document.getElementById('exportFiltered').onclick=exportFiltered;
-document.getElementById('exportUsed').onclick=exportUsed;
-document.getElementById('exportAvail').onclick=exportAvail;
-document.getElementById('exportCategory').onclick=exportCategory;
-
 (async function init(){
-  // initialize server items if empty on first run
+  // bootstrap server once (if empty)
   await apiInitItemsIfEmpty();
 
-  // restore filters from URL
+  // filters from URL
   readFiltersFromURL();
 
-  // pull items + used from server
-  const data = await apiGet(); // { ok, items:[...], used:[...] }
+  // load from server
+  const data = await apiGet();          // { ok, items:[...], used:[...] }
   items = (data.items && data.items.length) ? data.items : defaultItems.slice();
   usedStore = new Set(data.used || []);
 
-  // enrich + render
-  items.forEach(it => { if(!it.cats) it.cats = autoCats(it.title); });
+  items.forEach(it=>{ if(!it.cats) it.cats=autoCats(it.title); });
   updateCounts();
   initFilters();
   renderGrid();
 
-  // keep used fresh every 30s
+  // refresh used every 30s
   setInterval(async ()=>{ try{ const d=await apiGet(); usedStore=new Set(d.used||[]); updateCounts(); }catch{} }, 30000);
 })();
