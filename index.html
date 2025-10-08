@@ -13,7 +13,6 @@
       --bg:#f5f7fb; --panel:#ffffff; --card:#ffffff; --text:#111827; --muted:#475569;
       --blue:#2563eb; --green:#16a34a; --red:#dc2626; --border:#e5e7eb; --chip:#eef2ff; --input:#f8fafc;
     }
-
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);text-align:center;transition:background .2s,color .2s}
     .header{margin-top:20px}
@@ -50,11 +49,16 @@
     .chip{background:var(--chip);border:1px solid var(--border);padding:4px 8px;border-radius:999px;font-size:11px;color:var(--muted)}
     .actions{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);flex-wrap:wrap}
     .used-btn.used{background:var(--red);color:#fff;border-color:transparent}
+    .del-btn{background:#991b1b;border-color:#7f1d1d;color:#fff}
     .empty{color:var(--muted);text-align:center;border:1px dashed var(--border);border-radius:10px;padding:28px;margin:12px}
 
-    .add-wrap{max-width:1200px;margin:10px auto 0;display:none}
-    .add-form{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-    .add-form input{min-width:260px}
+    /* Admin modal */
+    .modal-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
+    .modal{width:min(900px,95vw);background:var(--panel);border:1px solid var(--border);border-radius:16px;text-align:left;box-shadow:0 20px 60px #0008}
+    .modal header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .modal .content{padding:16px;display:grid;gap:16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .note{color:var(--muted);font-size:12px}
 
     @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
     @keyframes rotate{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
@@ -78,23 +82,11 @@
     <div class="pill used">Used: <span id="count-used">0</span></div>
     <div class="pill available">Available: <span id="count-available">0</span></div>
 
-    <button id="editToggle" class="btn">🔒 Edit</button>
+    <button id="adminOpen" class="btn">🔧 Admin</button>
 
     <div class="seg" role="group" aria-label="Theme">
       <button id="themeDark">Dark</button>
       <button id="themeLight">Light</button>
-    </div>
-  </div>
-
-  <!-- add game (only visible in edit) -->
-  <div id="addWrap" class="add-wrap">
-    <form id="addForm" class="add-form" onsubmit="return false;">
-      <input class="input" id="addTitle" placeholder="Game title" />
-      <input class="input" id="addURL" placeholder="https://..." />
-      <button id="addBtn" class="btn primary">Add Game</button>
-    </form>
-    <div style="color:var(--muted);font-size:12px;margin-top:6px">
-      New games are saved to the server so everyone sees them.
     </div>
   </div>
 
@@ -121,6 +113,34 @@
   <div id="grid"></div>
   <div id="empty" class="empty" style="display:none;">No results match your filters.</div>
 
+  <!-- Admin Modal -->
+  <div id="adminBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <header>
+        <strong>Admin Panel</strong>
+        <button id="adminClose" class="btn">✖</button>
+      </header>
+      <div class="content">
+        <div class="row">
+          <label><input type="checkbox" id="toggleUsed"> Enable "Mark as Used" & Delete on cards</label>
+        </div>
+
+        <div class="row">
+          <input class="input" id="addTitle" placeholder="Game title" />
+          <input class="input" id="addURL" placeholder="https://..." />
+          <button id="addBtn" class="btn primary">Add Game</button>
+        </div>
+        <div class="note">New games are saved to the server so everyone sees them.</div>
+
+        <div class="row" style="justify-content:space-between">
+          <div><strong>Duplicates</strong> <span class="note">(same URL ignoring query parameters)</span></div>
+          <button id="scanDup" class="btn">Scan for duplicates</button>
+        </div>
+        <div id="dupList" class="note">Run “Scan for duplicates” to see results.</div>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js" defer></script>
   <script>
     // fun random animations for title/quote
@@ -131,4 +151,3 @@
   </script>
 </body>
 </html>
-
