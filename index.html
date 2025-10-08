@@ -87,7 +87,8 @@
     <div class="pill used">Used: <span id="count-used">0</span></div>
     <div class="pill available">Available: <span id="count-available">0</span></div>
 
-    <a id="adminToggleLink" class="btn" href="?admin=1">🔧 Admin</a>
+    <!-- Filled by JS only in admin mode -->
+    <a id="adminNav" class="btn" style="display:none"></a>
 
     <div class="seg" role="group" aria-label="Theme">
       <button id="themeDark">Dark</button>
@@ -101,10 +102,20 @@
       <input type="checkbox" id="toggleUsed" checked />
       Enable “Mark as Used” & Delete on cards
     </label>
+
     <input id="addTitle" class="input" placeholder="Game title" style="min-width:260px" />
     <input id="addURL" class="input" placeholder="https://..." style="min-width:320px" />
     <button id="addBtn" class="btn primary">Add Game</button>
-    <button id="scanDup" class="btn">Scan for duplicates</button>
+
+    <button id="scanDup" class="btn">Scan duplicates</button>
+
+    <!-- Export (CSV) -->
+    <div style="width:100%"></div>
+    <button id="expAll" class="btn">Export All (CSV)</button>
+    <button id="expFiltered" class="btn">Export Filtered (CSV)</button>
+    <button id="expUsed" class="btn">Export Used (CSV)</button>
+    <button id="expAvail" class="btn">Export Available (CSV)</button>
+    <button id="expCat" class="btn">Export Category (CSV)</button>
   </div>
 
   <!-- Filters -->
