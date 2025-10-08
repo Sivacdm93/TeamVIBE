@@ -1,53 +1,18 @@
 /*******************
  * CONFIG
  *******************/
-const STORE_URL = 'https://script.google.com/macros/s/AKfycbxsE3Qs82_-gGNDX-A5EOAuv2oXr9Gs4S5CvNTLyPuJ3n6EBsDIvxw0pJPhzkIcQnAvtA/exec';   // <-- paste your Apps Script /exec URL
-const STORE_KEY = '258006';               // must match ADMIN_KEY in Apps Script
-const EDIT_PIN  = '258006';
+const STORE_URL = 'https://script.google.com/macros/s/AKfycbwHYNuyjCuGm9h4RWkerXDe_tvow1msAFmssh_qDDKKr5cnWbT2c3pFme8CoDTAa7GAhg/exec';   // <-- paste your Apps Script /exec URL
+const STORE_KEY = '258006';               // must match ADMIN_KEY in Code.gs
+const ADMIN_PIN = '258006';
 const nocache   = () => `&t=${Date.now()}`;
-
-/*******************
- * DEFAULT DATA (used only to bootstrap server if empty)
- *******************/
-const defaultItems = [
-  { title: "Drop the Pen in bottle using Mobile camera", url: "https://www.instagram.com/reel/DNP0ZztvnvZ/?igsh=M3h2M3Z5eGE2amlw" },
-  { title: "Fan the Cup", url: "https://www.instagram.com/reel/DMvARSAz6qY/?igsh=MTh2cXp2M2hndW1rbA%3D%3D" },
-  { title: "Strick standing Challenge", url: "https://www.instagram.com/reel/DNQEm21vdpB/?igsh=c2d2bTZyc255aTc=" },
-  { title: "Hanger Transfer", url: "https://www.instagram.com/reel/DOBPgExCLgo/?igsh=MTJpazR0aHBjcjdibw==" },
-  { title: "Multiple games in this Reel", url: "https://www.instagram.com/reel/DOGK-8KEskO/?igsh=MWl6cTg5cXhldmRibA==" },
-  { title: "Do the Opposites", url: "https://www.instagram.com/reel/DOycseHE_NS/?igsh=eTI4ZTJ4YnRjYzM4" },
-  { title: "Mission Bottle escape", url: "https://www.instagram.com/reel/DMfKLvcvbwF/?igsh=MXI0bDRicTV1ZmdlcA==" },
-  { title: "Ball Gate", url: "https://www.instagram.com/reel/DLZLzUpy9JE/?igsh=MXg5dnYwaDk4ZDd0aQ==" },
-  { title: "Catch it if you can", url: "https://www.instagram.com/reel/DMaaKp2TY1I/?igsh=MTk3MDYzNzA2cDI0bQ==" },
-  { title: "Whats hiding in the cup?", url: "https://www.instagram.com/reel/DLZ39itSv5I/?igsh=MWkweXdpb2w2djFsNA==" },
-  { title: "Spin and Drop the ball with bottle", url: "https://www.instagram.com/reel/DNFGKpSSJX1/?igsh=MTh0OXQ5OTd3bHUxMQ==" },
-  { title: "Don't Clap At the Same Time", url: "https://www.instagram.com/reel/DK14cTbpnXc/?igsh=MWluNmtwYTU3ZHl0cA==" },
-  { title: "Don't follow the hand", url: "https://www.instagram.com/reel/DLm-ckQSnaZ/?igsh=aTQxbW80cXo5eHF6" },
-  { title: "Fill the cup with chocolate with papercup in both hand", url: "https://www.instagram.com/reel/DNlQfNvSZuO/?igsh=bHBxdzg3Nng1ZnNr" },
-  { title: "Collect the cup with straw", url: "https://www.instagram.com/reel/DNqUyH0o_On/?igsh=MXFhNnF5ZGozdmo1NA==" },
-  { title: "Flip the bottle", url: "https://youtube.com/shorts/JHU9ac717Tw?si=iho1cq6aS14VMxFz" },
-  { title: "Blow the Cup with balloon", url: "https://www.instagram.com/reel/DNQYH_YSrvx/?igsh=MXRjYWlybHc5ZmV5bA==" },
-  { title: "Tower Cup Challenge", url: "https://www.instagram.com/reel/DLZp5RYv7aY/?igsh=NTV6Z2hzcXBwNDF0" },
-  { title: "Communication challenge", url: "https://youtube.com/shorts/RO0uJrbk1kc?si=c24-sWUk3MrDTOl2" },
-  { title: "Don't Drop the Balloon", url: "https://youtube.com/shorts/N_xj-Zc762U?si=oJLotePSpF1qAzhC" },
-  { title: "Head, Shoulder,Knees and pick the  item", url: "https://youtube.com/shorts/m_QEcL7dK7I?si=_6uZ3ArVQhS7lCj3" },
-  { title: "Build the tower with Marshmallow", url: "https://youtu.be/7ZMuHZv47bQ?si=VMx2ypYdEXjBgfz9" },
-  { title: "Goal the Ball", url: "https://youtube.com/shorts/bQYxwodUM2c?si=WlULSCE0Sh4vSUE-" },
-  { title: "Hold the Paper with Straw", url: "https://youtube.com/shorts/mJgk6DLG7t0?si=fPG24w4lrdbg1nnG" },
-  { title: "Build the pyramid with cup in head", url: "https://youtu.be/e-qehXWt36Y?si=QNK8HizfkpOFXmCE" },
-  { title: "Cup and straw Balance", url: "https://youtube.com/shorts/PSDLwatlT2Q?si=jCuzv0y18d1uB3a6" },
-  { title: "Hold the ball with Pen", url: "https://www.instagram.com/reel/DIog4Lnh-JV/?igsh=MWRiMGZkd2V1NWU3OQ==" },
-  { title: "Spin and jump into your paper", url: "https://www.instagram.com/reel/DKPfi9ChQkg/?igsh=MTF2dWFwZ3NiMmMzMA==" },
-  { title: "Transfer the ball with A4 paper", url: "https://www.instagram.com/reel/DMhVD5wRqa7/?igsh=emxtN2MzdzJ4ZDk4" },
-  { title: "Catch the ball", url: "https://youtube.com/shorts/2cWj0XGiwGY?si=6J2kxLH1UWkUTM1y" }
-];
 
 /*******************
  * STATE
  *******************/
-let items = [];               // server list
-let usedStore = new Set();    // server used URLs
-let adminEnabled = false;
+let items = [];               // from server
+let usedStore = new Set();    // from server
+let allowMarkUsed = false;    // controlled by Admin checkbox
+let isAdmin = false;
 
 const filterState = { q:'', platform:'all', status:'all', category:'all' };
 
@@ -55,26 +20,28 @@ const filterState = { q:'', platform:'all', status:'all', category:'all' };
  * SERVER API
  *******************/
 async function apiGet(){
-  const res = await fetch(`${STORE_URL}?action=get${nocache()}`);
-  if(!res.ok) throw new Error('get failed');
-  return res.json();
+  const r = await fetch(`${STORE_URL}?action=get${nocache()}`);
+  if(!r.ok) throw new Error('get failed');
+  return r.json();
 }
 async function apiSetUsed(arr){
   const payload = encodeURIComponent(JSON.stringify(arr));
-  const res = await fetch(`${STORE_URL}?action=setUsed&key=${encodeURIComponent(STORE_KEY)}&data=${payload}${nocache()}`);
-  const j = await res.json().catch(()=>({}));
-  if(!res.ok || j.ok===false) throw new Error(j.error||'setUsed failed');
+  const r = await fetch(`${STORE_URL}?action=setUsed&key=${encodeURIComponent(STORE_KEY)}&data=${payload}${nocache()}`);
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok || j.ok===false) throw new Error(j.error||'setUsed failed');
 }
 async function apiAddItem(item){
   const cats = item.cats ? encodeURIComponent(JSON.stringify(item.cats)) : '';
-  const res = await fetch(`${STORE_URL}?action=addItem&key=${encodeURIComponent(STORE_KEY)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}${cats?`&cats=${cats}`:''}${nocache()}`);
-  const j = await res.json().catch(()=>({}));
-  if(!res.ok || j.ok===false) throw new Error(j.error||'unknown action');
+  const r = await fetch(`${STORE_URL}?action=addItem&key=${encodeURIComponent(STORE_KEY)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}${cats?`&cats=${cats}`:''}${nocache()}`);
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok || j.ok===false) throw new Error(j.error||'unknown action');
   return j.item;
 }
-async function apiInitItemsIfEmpty(){
-  const payload = encodeURIComponent(JSON.stringify(defaultItems));
-  await fetch(`${STORE_URL}?action=setItemsIfEmpty&key=${encodeURIComponent(STORE_KEY)}&data=${payload}${nocache()}`);
+async function apiDeleteItem(url){
+  const r = await fetch(`${STORE_URL}?action=deleteItem&key=${encodeURIComponent(STORE_KEY)}&url=${encodeURIComponent(url)}${nocache()}`);
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok || j.ok===false) throw new Error(j.error||'delete failed');
+  return j;
 }
 
 /*******************
@@ -98,6 +65,7 @@ function ytId(u){
 function ytEmbed(u){ const id=ytId(u); return id?`https://www.youtube.com/embed/${id}`:null; }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+// simple auto-cats
 const CAT_RULES = [
   { key:'bottle',label:'Bottle' },{ key:'cup',label:'Cup' },{ key:'straw',label:'Straw' },
   { key:'balloon',label:'Balloon' },{ key:'ball',label:'Ball' },{ key:'paper',label:'Paper' },
@@ -105,6 +73,12 @@ const CAT_RULES = [
   { key:'balance',label:'Balance' },{ key:'challenge',label:'Challenge' },{ key:'opposite',label:'Opposites' },
 ];
 function autoCats(title){ const t=(title||'').toLowerCase(); const out=[]; CAT_RULES.forEach(r=>t.includes(r.key)&&out.push(r.label)); return out.length?out:['General']; }
+
+// normalize URL for duplicate checks (host+pathname only, lowercased)
+function normUrl(u){
+  try{ const x=new URL(u); return (x.hostname + x.pathname).replace(/^www\./,'').toLowerCase().replace(/\/+$/,''); }
+  catch{ return (u||'').toLowerCase().trim(); }
+}
 
 /*******************
  * FILTERS + URL sync
@@ -146,8 +120,7 @@ function writeFiltersToURL(){
  *******************/
 function updateCounts(){
   const total = items.length;
-  // count only URLs that exist in items (fix for mismatch)
-  const used = items.filter(i => usedStore.has(i.url)).length;
+  const used  = items.filter(i => usedStore.has(i.url)).length; // only those in list
   const avail = total - used;
   document.getElementById('count-total').textContent = total;
   document.getElementById('count-used').textContent = used;
@@ -186,14 +159,17 @@ function makeCard(item){
       <a class="btn" target="_blank" href="${item.url}">${platform==='instagram'?'Open in Instagram': platform==='youtube'?'Open in YouTube':'Open link'}</a>
       <button class="btn" data-copy="${item.url}">Copy link</button>
       <button class="btn used-btn ${isUsed?'used':''}" data-url="${item.url}">${isUsed?'Used ✓':'Used'}</button>
+      <button class="btn del-btn" data-del="${item.url}" style="display:${allowMarkUsed?'inline-flex':'none'}">Delete</button>
     </div>`;
 
+  // Copy
   card.querySelector('[data-copy]').addEventListener('click', async (e)=>{
     try{ await navigator.clipboard.writeText(item.url); e.currentTarget.textContent='Copied!'; setTimeout(()=>e.currentTarget.textContent='Copy link',1200);}catch{alert('Copy failed');}
   });
 
+  // Used toggle (only if allowed)
   card.querySelector('.used-btn').addEventListener('click', async e=>{
-    if(!adminEnabled) return;
+    if(!allowMarkUsed) return;
     const url=e.currentTarget.getAttribute('data-url');
     const was=usedStore.has(url);
     if(was) usedStore.delete(url); else usedStore.add(url);
@@ -201,6 +177,20 @@ function makeCard(item){
     e.currentTarget.textContent = usedStore.has(url)?'Used ✓':'Used';
     updateCounts();
     try{ await apiSetUsed([...usedStore]); }catch{ alert('Save failed'); }
+  });
+
+  // Delete (only when allowed)
+  card.querySelector('[data-del]').addEventListener('click', async (e)=>{
+    if(!allowMarkUsed) return;
+    const url=e.currentTarget.getAttribute('data-del');
+    if(!confirm('Delete this game from the website?')) return;
+    try{
+      await apiDeleteItem(url);
+      // remove locally and refresh
+      items = items.filter(i => i.url !== url);
+      usedStore.delete(url);
+      updateCounts(); renderGrid();
+    }catch(err){ alert('Delete failed: ' + err.message); }
   });
 
   return card;
@@ -216,7 +206,7 @@ function renderGrid(){
 }
 
 /*******************
- * FILTER UI + THEME
+ * THEME + FILTER UI
  *******************/
 function initFilters(){
   const cats=buildCategories();
@@ -251,58 +241,84 @@ function initFilters(){
 }
 
 /*******************
- * ADD GAME (server)
+ * ADMIN UI
  *******************/
-function showAddUI(show){ document.getElementById('addWrap').style.display = show ? 'block' : 'none'; }
-async function addGame(title,url){
+const adminBackdrop = document.getElementById('adminBackdrop');
+const adminOpen = document.getElementById('adminOpen');
+const adminClose = document.getElementById('adminClose');
+const toggleUsed = document.getElementById('toggleUsed');
+const dupList = document.getElementById('dupList');
+
+function openAdmin(){
+  if(!isAdmin){
+    const pin = prompt('Enter Admin PIN');
+    if(!pin || pin.trim() !== ADMIN_PIN) { alert('Wrong PIN'); return; }
+    isAdmin = true;
+  }
+  adminBackdrop.style.display='flex';
+  toggleUsed.checked = allowMarkUsed;
+}
+function closeAdmin(){ adminBackdrop.style.display='none'; }
+
+adminOpen.addEventListener('click', openAdmin);
+adminClose.addEventListener('click', closeAdmin);
+adminBackdrop.addEventListener('click', (e)=>{ if(e.target===adminBackdrop) closeAdmin(); });
+
+toggleUsed.addEventListener('change', ()=>{
+  allowMarkUsed = toggleUsed.checked;
+  renderGrid();
+});
+
+// Add game from Admin
+document.getElementById('addBtn').addEventListener('click', async ()=>{
+  const title = document.getElementById('addTitle').value.trim();
+  const url   = document.getElementById('addURL').value.trim();
   if(!title || !url) return alert('Please provide both title and URL');
   if(!/^https?:\/\//i.test(url)) return alert('URL must start with http(s)');
+  if(items.some(i => i.url.trim() === url.trim())) return alert('This URL already exists.');
+
   try{
-    if(items.some(i => i.url.trim() === url.trim())) return alert('This URL already exists.');
-    const saved = await apiAddItem({ title: title.trim(), url: url.trim(), cats: autoCats(title) });
+    const saved = await apiAddItem({ title, url, cats: autoCats(title) });
     items.push(saved);
-    renderGrid(); updateCounts();
-  }catch(e){
-    if(String(e.message).includes('unknown action')){
-      alert('Add failed: unknown action\n\nYour Apps Script is still the OLD version. Replace it with the new Code.gs (with addItem) and redeploy, then paste the new /exec URL into script.js.');
-    }else{
-      alert('Add failed: ' + e.message);
-    }
-  }
-}
+    document.getElementById('addTitle').value=''; document.getElementById('addURL').value='';
+    updateCounts(); renderGrid();
+    alert('Added!');
+  }catch(err){ alert('Add failed: ' + err.message); }
+});
+
+// Scan duplicates
+document.getElementById('scanDup').addEventListener('click', ()=>{
+  const map = new Map();
+  items.forEach(it=>{
+    const k = normUrl(it.url);
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push(it);
+  });
+  const dups = [...map.values()].filter(arr => arr.length > 1);
+  if(dups.length===0){ dupList.textContent='No duplicates found.'; return; }
+  const html = dups.map(group => `
+    <div style="text-align:left;margin:8px 0;padding:8px;border:1px solid var(--border);border-radius:8px;">
+      ${group.map(g => `<div style="margin:2px 0"><strong>${escapeHtml(g.title)}</strong><br><span class="note">${escapeHtml(g.url)}</span></div>`).join('')}
+    </div>
+  `).join('');
+  dupList.innerHTML = html;
+});
 
 /*******************
  * INIT
  *******************/
-const editBtn=document.getElementById('editToggle');
-editBtn.addEventListener('click', () => {
-  if(adminEnabled){ adminEnabled=false; editBtn.textContent='🔒 Edit'; showAddUI(false); return; }
-  const pin=prompt('Enter Edit PIN'); if(pin && pin.trim()===EDIT_PIN){ adminEnabled=true; editBtn.textContent='✅ Editing'; showAddUI(true); }
-  else alert('Wrong PIN');
-});
-document.getElementById('addBtn').addEventListener('click', ()=>{
-  if(!adminEnabled) return;
-  addGame(document.getElementById('addTitle').value, document.getElementById('addURL').value);
-  document.getElementById('addTitle').value=''; document.getElementById('addURL').value='';
-});
+readFiltersFromURL();
 
 (async function init(){
-  // bootstrap server once (if empty)
-  await apiInitItemsIfEmpty();
-
-  // filters from URL
-  readFiltersFromURL();
-
-  // load from server
-  const data = await apiGet();          // { ok, items:[...], used:[...] }
-  items = (data.items && data.items.length) ? data.items : defaultItems.slice();
-  usedStore = new Set(data.used || []);
-
+  const data = await apiGet();           // { items, used }
+  items = (data.items||[]).slice();
+  usedStore = new Set(data.used||[]);
   items.forEach(it=>{ if(!it.cats) it.cats=autoCats(it.title); });
+
   updateCounts();
   initFilters();
   renderGrid();
 
   // refresh used every 30s
-  setInterval(async ()=>{ try{ const d=await apiGet(); usedStore=new Set(d.used||[]); updateCounts(); }catch{} }, 30000);
+  setInterval(async ()=>{ try{ const d=await apiGet(); usedStore=new Set(d.used||[]); updateCounts(); renderGrid(); }catch{} }, 30000);
 })();
