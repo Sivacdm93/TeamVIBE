@@ -5,155 +5,137 @@
   <title>Team VIBE</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #0d1117;
-      color: white;
-      margin: 0;
-      padding: 0;
-      text-align: center;
+    :root{
+      --bg:#0d1117; --panel:#111827; --card:#1f2937; --text:#e5e7eb; --muted:#a0aec0;
+      --blue:#2563eb; --green:#22c55e; --red:#ef4444; --border:#2b3444; --chip:#0d1728; --input:#1e293b;
+    }
+    [data-theme="light"]{
+      --bg:#f5f7fb; --panel:#ffffff; --card:#ffffff; --text:#111827; --muted:#475569;
+      --blue:#2563eb; --green:#16a34a; --red:#dc2626; --border:#e5e7eb; --chip:#eef2ff; --input:#f8fafc;
     }
 
-    /* Header */
-    .header { margin-top: 20px; }
-    .header img {
-      max-width: 1000px;
-      width: 100%;
-      border-radius: 20px;
-      margin-bottom: 20px;
-    }
-    h1 {
-      display: block;
-      font-size: 120px;        /* big title */
-      margin: 25px 0 15px;
-      font-weight: 900;
-      text-align: center;
-      line-height: 1.1;
-      background: linear-gradient(90deg, #6a5acd, #ff69b4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation-duration: 4s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
-    }
-    .quote {
-      display: block;
-      font-size: 26px;
-      font-style: italic;
-      margin-top: 10px;
-      text-align: center;
-      color: #ddd;
-      animation-duration: 4s;
-      animation-iteration-count: infinite;
-      animation-timing-function: ease-in-out;
-    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);text-align:center;transition:background .2s,color .2s}
+    .header{margin-top:20px}
+    .header img{max-width:1000px;width:100%;border-radius:20px;margin-bottom:20px}
+    h1{display:block;font-size:120px;margin:25px 0 15px;font-weight:900;line-height:1.1;
+       background:linear-gradient(90deg,#6a5acd,#ff69b4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+       animation-duration:4s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+    .quote{display:block;font-size:26px;font-style:italic;margin-top:10px;color:var(--muted);
+       animation-duration:4s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
 
-    /* Counts row */
-    .counts { margin: 20px 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-    .counts .pill {
-      padding: 10px 16px; border-radius: 22px; font-weight: 800; display:inline-block;
-    }
-    .pill.total      { background: #2563eb; }
-    .pill.used       { background: #ef4444; }
-    .pill.available  { background: #22c55e; }
-    .edit-btn {
-      border: 1px solid #333; background:#162033; color:#fff; padding: 10px 14px; border-radius: 10px; cursor:pointer;
-    }
+    .bar{max-width:1200px;margin:14px auto 6px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+    .pill{padding:10px 16px;border-radius:22px;font-weight:800}
+    .pill.total{background:var(--blue);color:#fff}
+    .pill.used{background:var(--red);color:#fff}
+    .pill.available{background:var(--green);color:#0f172a}
+    .btn{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:10px 14px;border-radius:10px;cursor:pointer}
+    .btn.primary{background:var(--green);border-color:transparent;color:#0f172a;font-weight:800}
+    .seg{border:1px solid var(--border);background:var(--panel);border-radius:10px;display:flex;gap:8px;padding:4px}
+    .seg button{border:none;background:transparent;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
+    .seg button.active{background:var(--blue);color:#fff}
 
-    /* Filters */
-    .filters {
-      margin: 20px auto; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
-    }
-    .filters input, .filters select, .filters button {
-      padding: 8px 12px; border-radius: 8px; border: 1px solid #444; background: #1e293b; color: white;
-    }
+    .filters{max-width:1200px;margin:6px auto 6px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .input,.select{background:var(--input);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;outline:none}
+    .results-note{max-width:1200px;margin:4px auto 0;color:var(--muted);font-size:13px}
 
-    /* Grid */
-    #grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto 40px;
-    }
-    .card { background: #1f2937; border-radius: 12px; overflow: hidden; padding: 10px; text-align: left; }
-    .card h3 { font-size: 18px; margin: 8px 0; }
-    .card a { color: #60a5fa; text-decoration: none; }
-    .used-btn { margin-top: 8px; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; background: #374151; color: white; }
-    .used-btn.used { background: #ef4444; }
+    #grid{max-width:1200px;margin:10px auto 40px;padding:0 12px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .card{grid-column:span 12;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;text-align:left}
+    @media(min-width:640px){.card{grid-column:span 6}}
+    @media(min-width:1024px){.card{grid-column:span 4}}
+    .meta{padding:12px}
+    .title{font-size:18px;font-weight:700;margin:0 0 8px}
+    .url{font-size:12px;color:var(--muted);word-break:break-all}
+    .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .chip{background:var(--chip);border:1px solid var(--border);padding:4px 8px;border-radius:999px;font-size:11px;color:var(--muted)}
+    .actions{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);flex-wrap:wrap}
+    .used-btn.used{background:var(--red);color:#fff;border-color:transparent}
+    .empty{color:var(--muted);text-align:center;border:1px dashed var(--border);border-radius:10px;padding:28px;margin:12px}
 
-    /* Animations */
-    @keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-15px);} }
-    @keyframes rotate { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
-    @keyframes slideLR { 0%,100%{transform:translateX(0);}25%{transform:translateX(-15px);}75%{transform:translateX(15px);} }
-    @keyframes popup { 0%{transform:scale(1);}50%{transform:scale(1.15);}100%{transform:scale(1);} }
-    @keyframes fadeInOut { 0%,100%{opacity:0;transform:translateY(10px);}50%{opacity:1;transform:translateY(0);} }
+    .add-wrap{max-width:1200px;margin:10px auto 0;display:none}
+    .add-form{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .add-form input{min-width:260px}
 
-    /* Responsive */
-    @media(max-width: 768px){
-      h1 { font-size: 64px; }
-      .quote { font-size: 18px; }
-    }
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+    @keyframes rotate{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    @keyframes slideLR{0%,100%{transform:translateX(0)}25%{transform:translateX(-15px)}75%{transform:translateX(15px)}}
+    @keyframes popup{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+    @keyframes fadeInOut{0%,100%{opacity:0;transform:translateY(10px)}50%{opacity:1;transform:translateY(0)}}
+
+    @media(max-width:768px){h1{font-size:64px}.quote{font-size:18px}}
   </style>
-  <!-- Instagram embed runtime -->
   <script async src="https://www.instagram.com/embed.js"></script>
 </head>
 <body>
-
   <div class="header">
     <img src="Fun.jpg" alt="Team VIBE">
     <h1>Team VIBE</h1>
     <div class="quote">“Valuing Ideas, Building engagement”</div>
   </div>
 
-  <!-- Counts + Edit -->
-  <div class="counts">
+  <div class="bar">
     <div class="pill total">Total: <span id="count-total">0</span></div>
     <div class="pill used">Used: <span id="count-used">0</span></div>
     <div class="pill available">Available: <span id="count-available">0</span></div>
-    <button id="editToggle" class="edit-btn">🔒 Edit</button>
+
+    <button id="editToggle" class="btn">🔒 Edit</button>
+
+    <div class="seg" role="group" aria-label="Theme">
+      <button id="themeDark">Dark</button>
+      <button id="themeLight">Light</button>
+    </div>
+
+    <div class="seg" role="group" aria-label="Export">
+      <button id="exportAll">Export All</button>
+      <button id="exportFiltered">Export Filtered</button>
+      <button id="exportUsed">Export Used</button>
+      <button id="exportAvail">Export Available</button>
+      <button id="exportCategory">Export Category</button>
+    </div>
   </div>
 
-  <!-- Filters -->
+  <!-- add game (only visible in edit) -->
+  <div id="addWrap" class="add-wrap">
+    <form id="addForm" class="add-form" onsubmit="return false;">
+      <input class="input" id="addTitle" placeholder="Game title" />
+      <input class="input" id="addURL" placeholder="https://..." />
+      <button id="addBtn" class="btn primary">Add Game</button>
+    </form>
+    <div style="color:var(--muted);font-size:12px;margin-top:6px">
+      New games are saved to the server so everyone sees them.
+    </div>
+  </div>
+
   <div class="filters">
-    <input type="text" id="searchInput" placeholder="Search games..." />
-    <select id="platformSelect">
+    <input id="searchInput" class="input" placeholder="Search games..." />
+    <select id="platformSelect" class="select">
       <option value="all">All platforms</option>
       <option value="instagram">Instagram</option>
       <option value="youtube">YouTube</option>
     </select>
-    <select id="statusSelect">
+    <select id="statusSelect" class="select">
       <option value="all">All status</option>
       <option value="available">Available</option>
       <option value="used">Used</option>
     </select>
-    <select id="categorySelect">
+    <select id="categorySelect" class="select">
       <option value="all">All categories</option>
     </select>
-    <button id="clearFilters">Clear</button>
+    <button id="clearFilters" class="btn">Clear</button>
   </div>
 
-  <!-- Results note -->
-  <div id="resultsNote" style="margin:10px;color:#bbb;font-size:14px;"></div>
+  <div id="resultsNote" class="results-note"></div>
 
-  <!-- Game grid -->
   <div id="grid"></div>
-  <div id="empty" style="display:none;color:#aaa;padding:20px;">No results match your filters.</div>
+  <div id="empty" class="empty" style="display:none;">No results match your filters.</div>
 
-  <!-- Your main logic -->
   <script src="script.js" defer></script>
-
-  <!-- Title & quote animation randomizer (page-level; harmless even if script.js also animates) -->
   <script>
-    const title = document.querySelector('h1');
-    const quote = document.querySelector('.quote');
-    const titleAnims = ['bounce','rotate','slideLR','popup'];
-    const quoteAnims = ['fadeInOut','bounce','slideLR','popup'];
-    function randomAnim(el, arr){ if(!el) return; el.style.animationName = arr[Math.floor(Math.random()*arr.length)]; }
-    randomAnim(title,titleAnims); randomAnim(quote,quoteAnims);
-    setInterval(()=>randomAnim(title,titleAnims),4000);
-    setInterval(()=>randomAnim(quote,quoteAnims),5000);
+    // fun random animations for title/quote
+    const title=document.querySelector('h1'), quote=document.querySelector('.quote');
+    const tAn=['bounce','rotate','slideLR','popup'], qAn=['fadeInOut','bounce','slideLR','popup'];
+    const rnd=(el,arr)=>el&&(el.style.animationName=arr[Math.floor(Math.random()*arr.length)]);
+    rnd(title,tAn); rnd(quote,qAn); setInterval(()=>rnd(title,tAn),4000); setInterval(()=>rnd(quote,qAn),5000);
   </script>
 </body>
 </html>
