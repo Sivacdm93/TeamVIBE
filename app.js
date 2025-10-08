@@ -31,7 +31,12 @@ async function apiAddItem(item){
   const r = await fetch(`${STORE_URL}?action=addItem&key=${encodeURIComponent(STORE_KEY)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}${cats?`&cats=${cats}`:''}${nocache()}`);
   const j = await r.json().catch(()=>({})); if(!r.ok||j.ok===false) throw new Error(j.error||'add failed'); return j.item;
 }
-async function apiDeleteItem(url){
+// Prefer delete by id; fallback to url (server should remove only the first match)
+async function apiDeleteItemById(id){
+  const r = await fetch(`${STORE_URL}?action=deleteItem&key=${encodeURIComponent(STORE_KEY)}&id=${encodeURIComponent(id)}${nocache()}`);
+  const j = await r.json().catch(()=>({})); if(!r.ok||j.ok===false) throw new Error(j.error||'delete failed'); return j;
+}
+async function apiDeleteItemByUrl(url){
   const r = await fetch(`${STORE_URL}?action=deleteItem&key=${encodeURIComponent(STORE_KEY)}&url=${encodeURIComponent(url)}${nocache()}`);
   const j = await r.json().catch(()=>({})); if(!r.ok||j.ok===false) throw new Error(j.error||'delete failed'); return j;
 }
@@ -83,10 +88,8 @@ function readFiltersFromURL(){
 }
 function writeFiltersToURL(){
   const p=new URLSearchParams(location.search);
-  // keep admin flag
-  if(wantAdmin) p.set('admin','1'); else p.delete('admin');
+  if(params.get('admin')==='1') p.set('admin','1'); else p.delete('admin');
 
-  // filters
   p.delete('q'); p.delete('platform'); p.delete('status'); p.delete('category');
   if(filterState.q) p.set('q',filterState.q);
   if(filterState.platform!=='all') p.set('platform',filterState.platform);
@@ -105,16 +108,23 @@ function updateCounts(){
 function makeCard(item){
   const platform=detectPlatform(item.url);
   const card=document.createElement('div'); card.className='card';
+
   let media='';
-  if(platform==='instagram'){
-    media=`<div class="media"><blockquote class="instagram-media" data-instgrm-permalink="${item.url}" data-instgrm-version="14"></blockquote></div>`;
-  }else if(platform==='youtube' && ytEmbed(item.url)){
-    media=`<div class="media"><iframe width="100%" height="360" src="${ytEmbed(item.url)}" frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+  if(!adminMode){ // USER view only
+    if(platform==='instagram'){
+      media=`<div class="media"><blockquote class="instagram-media" data-instgrm-permalink="${item.url}" data-instgrm-version="14"></blockquote></div>`;
+    }else if(platform==='youtube' && ytEmbed(item.url)){
+      media=`<div class="media"><iframe width="100%" height="360" src="${ytEmbed(item.url)}" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+    }else{
+      media=`<div class="media" style="padding:10px"><a class="btn" href="${item.url}" target="_blank">Open link</a></div>`;
+    }
   }else{
+    // Admin: no heavy embeds; just a compact top bar with "Open link"
     media=`<div class="media" style="padding:10px"><a class="btn" href="${item.url}" target="_blank">Open link</a></div>`;
   }
+
   const isUsed=usedStore.has(item.url);
   const cats=item.cats||autoCats(item.title);
 
@@ -131,8 +141,8 @@ function makeCard(item){
       <a class="btn" href="${item.url}" target="_blank">${platform==='instagram'?'Open in Instagram': platform==='youtube'?'Open in YouTube':'Open link'}</a>
       <button class="btn" data-copy="${item.url}">Copy link</button>
       ${adminMode ? `
-        <button class="btn used-btn ${isUsed?'used':''}" data-url="${item.url}" ${allowMarkUsed?'':'disabled'}>${isUsed?'Used ✓':'Used'}</button>
-        <button class="btn del-btn" data-del="${item.url}">Delete</button>
+        <button class="btn used-btn ${isUsed?'used':''}" data-id="${item.id??''}" data-url="${item.url}" ${allowMarkUsed?'':'disabled'}>${isUsed?'Used ✓':'Used'}</button>
+        <button class="btn del-btn" data-id="${item.id??''}" data-url="${item.url}">Delete</button>
       ` : ``}
     </div>`;
 
@@ -155,13 +165,22 @@ function makeCard(item){
       try{ await apiSetUsed([...usedStore]); }catch{ alert('Save failed'); }
     });
 
-    // delete
-    card.querySelector('[data-del]').addEventListener('click', async e=>{
-      const url=e.currentTarget.getAttribute('data-del');
+    // delete (one item only)
+    card.querySelector('.del-btn').addEventListener('click', async e=>{
+      const id=e.currentTarget.getAttribute('data-id');
+      const url=e.currentTarget.getAttribute('data-url');
       if(!confirm('Delete this game from the website?')) return;
       try{
-        await apiDeleteItem(url);
-        items = items.filter(i=>i.url!==url);
+        if(id){ await apiDeleteItemById(id); }
+        else { await apiDeleteItemByUrl(url); } // server should remove just one match
+        // remove locally one item only
+        let removed=false;
+        items = items.filter(i=>{
+          if(removed) return true;
+          const match = id ? (i.id===id) : (i.url===url);
+          if(match){ removed=true; return false; }
+          return true;
+        });
         usedStore.delete(url);
         updateCounts(); renderGrid();
       }catch(err){ alert('Delete failed: '+err.message); }
@@ -175,34 +194,33 @@ function renderGrid(){
   const filtered=items.filter(passesFilters);
   if(!filtered.length){ document.getElementById('empty').style.display='block'; }
   else { document.getElementById('empty').style.display='none'; filtered.forEach(i=>grid.appendChild(makeCard(i))); }
-  try{ window.instgrm?.Embeds?.process(); }catch{}
+  if(!adminMode){ try{ window.instgrm?.Embeds?.process(); }catch{} } // process embeds only for user view
   document.getElementById('resultsNote').textContent=`${filtered.length} of ${items.length} shown (filters applied)`;
 }
 
 /*************** THEME/INPUTS ***********/
 function initUI(){
-  // admin vs user header/tools
+  // headers & admin link
   const hdrUser=document.getElementById('hdrUser');
   const hdrAdmin=document.getElementById('hdrAdmin');
   const tools=document.getElementById('adminTools');
   const dups=document.getElementById('dupList');
-  const adminLink=document.getElementById('adminToggleLink');
+  const adminNav=document.getElementById('adminNav');
 
   if(adminMode){
     hdrUser.style.display='none';
     hdrAdmin.style.display='';
     tools.style.display='flex';
     dups.style.display='none';
-    adminLink.textContent='👤 User view';
-    // clicking toggles admin off
-    adminLink.onclick=(e)=>{ e.preventDefault(); const p=new URLSearchParams(location.search); p.delete('admin'); location.search=p.toString(); };
+    adminNav.style.display='';
+    adminNav.textContent='👤 User view';
+    adminNav.onclick=(e)=>{ e.preventDefault(); const p=new URLSearchParams(location.search); p.delete('admin'); location.search=p.toString(); };
   }else{
     hdrUser.style.display='';
     hdrAdmin.style.display='none';
     tools.style.display='none';
     dups.style.display='none';
-    adminLink.textContent='🔧 Admin';
-    adminLink.href='?admin=1';
+    adminNav.style.display='none'; // no admin button in user page
   }
 
   // categories
@@ -249,37 +267,53 @@ function initUI(){
     });
 
     document.getElementById('scanDup').addEventListener('click',()=>{
-      const map=new Map(); items.forEach(it=>{ const k=normUrl(it.url); if(!map.has(k)) map.set(k,[]); map.get(k).push(it); });
+      const map=new Map();
+      items.forEach(it=>{ const k=normUrl(it.url); if(!map.has(k)) map.set(k,[]); map.get(k).push(it); });
       const dups=[...map.values()].filter(a=>a.length>1);
       const box=document.getElementById('dupList');
       box.style.display='block';
       if(!dups.length){ box.innerHTML='<b>No duplicates found.</b>'; return; }
       box.innerHTML=dups.map(g=>`<div class="dup-item">${g.map(x=>`<div><b>${escapeHtml(x.title)}</b><br><span style="font-size:12px;color:var(--muted)">${escapeHtml(x.url)}</span></div>`).join('')}</div>`).join('');
     });
-  }
 
-  // theme
-  const KEY='tv_theme';
-  function apply(t){ document.documentElement.setAttribute('data-theme',t); localStorage.setItem(KEY,t); }
-  apply(localStorage.getItem(KEY)||'dark');
-  const dark=document.getElementById('themeDark'), light=document.getElementById('themeLight');
-  const sync=()=>{ const t=localStorage.getItem(KEY)||'dark'; dark.classList.toggle('active',t==='dark'); light.classList.toggle('active',t==='light'); };
-  dark.onclick=()=>{apply('dark'); sync();}; light.onclick=()=>{apply('light'); sync();}; sync();
+    // CSV exports
+    const toCSV = arr => {
+      const lines = [['Title','URL'], ...arr.map(i=>[i.title||'', i.url||''])];
+      return lines.map(r=>r.map(v=>{
+        const s=String(v??'');
+        return s.includes(',')||s.includes('"')||s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s;
+      }).join(',')).join('\n');
+    };
+    const downloadCSV = (rows, name) => {
+      const blob=new Blob([toCSV(rows)], {type:'text/csv;charset=utf-8;'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${name}.csv`; a.click(); URL.revokeObjectURL(a.href);
+    };
+    const filteredItems = () => items.filter(passesFilters);
+    const usedItems = () => items.filter(i=>usedStore.has(i.url));
+    const availItems = () => items.filter(i=>!usedStore.has(i.url));
+    const categoryItems = () => {
+      if(filterState.category==='all') return items;
+      return items.filter(i=>(i.cats||autoCats(i.title)).includes(filterState.category));
+    };
+
+    document.getElementById('expAll').onclick = ()=> downloadCSV(items,'games_all');
+    document.getElementById('expFiltered').onclick = ()=> downloadCSV(filteredItems(),'games_filtered');
+    document.getElementById('expUsed').onclick = ()=> downloadCSV(usedItems(),'games_used');
+    document.getElementById('expAvail').onclick = ()=> downloadCSV(availItems(),'games_available');
+    document.getElementById('expCat').onclick = ()=> downloadCSV(categoryItems(),'games_category');
+  }
 }
 
 /**************** INIT ******************/
 function gateAdminIfNeeded(){
   if(!wantAdmin){ adminMode=false; allowMarkUsed=false; return; }
-  // already unlocked in this tab?
   if(sessionStorage.getItem('tv_admin_ok')==='1'){ adminMode=true; allowMarkUsed=true; return; }
   const pin = prompt('Enter Admin PIN:');
   if(pin===ADMIN_PIN){ sessionStorage.setItem('tv_admin_ok','1'); adminMode=true; allowMarkUsed=true; }
   else { adminMode=false; allowMarkUsed=false; }
 }
-
 function readFiltersFromURLOnLoad(){
   const p=new URLSearchParams(location.search);
-  // don't read admin param here; gate already read
   if(p.get('q')) filterState.q=p.get('q');
   if(p.get('platform')) filterState.platform=p.get('platform');
   if(p.get('status')) filterState.status=p.get('status');
@@ -290,7 +324,10 @@ gateAdminIfNeeded();
 readFiltersFromURLOnLoad();
 
 (async function init(){
-  const data=await apiGet(); items=(data.items||[]).slice(); usedStore=new Set(data.used||[]);
+  const data=await apiGet();
+  // items should already contain id if your server code sets it. Fallback assign ephemeral ids to avoid UI dup issues.
+  items=(data.items||[]).map((it,idx)=>({ id: it.id ?? String(idx + 1) + '-' + (it.url||'').slice(-6), ...it }));
+  usedStore=new Set(data.used||[]);
   items.forEach(it=>{ if(!it.cats) it.cats=autoCats(it.title); });
   updateCounts(); initUI(); renderGrid();
   setInterval(async ()=>{ try{ const d=await apiGet(); usedStore=new Set(d.used||[]); updateCounts(); renderGrid(); }catch{} },30000);
