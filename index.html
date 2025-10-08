@@ -14,16 +14,18 @@
       --blue:#2563eb; --green:#16a34a; --red:#dc2626; --border:#e5e7eb; --chip:#eef2ff; --input:#f8fafc;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);text-align:center;transition:background .2s,color .2s}
-    .header{margin-top:20px}
-    .header img{max-width:1000px;width:100%;border-radius:20px;margin-bottom:20px}
-    h1{display:block;font-size:120px;margin:25px 0 15px;font-weight:900;line-height:1.1;
-       background:linear-gradient(90deg,#6a5acd,#ff69b4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
-       animation-duration:4s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
-    .quote{display:block;font-size:26px;font-style:italic;margin-top:10px;color:var(--muted);
-       animation-duration:4s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);text-align:center}
 
-    .bar{max-width:1200px;margin:14px auto 6px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+    /* Headers */
+    .header-img{margin-top:20px}
+    .header-img img{max-width:1000px;width:100%;border-radius:20px;margin-bottom:20px}
+    .header-admin{padding-top:18px}
+    h1{font-weight:900;line-height:1.1;margin:18px 0 8px}
+    .title-main{font-size:120px;background:linear-gradient(90deg,#6a5acd,#ff69b4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .title-admin{font-size:92px;background:linear-gradient(90deg,#22d3ee,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .quote{font-style:italic;color:var(--muted);margin-bottom:6px}
+
+    .bar{max-width:1200px;margin:10px auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
     .pill{padding:10px 16px;border-radius:22px;font-weight:800}
     .pill.total{background:var(--blue);color:#fff}
     .pill.used{background:var(--red);color:#fff}
@@ -34,8 +36,10 @@
     .seg button{border:none;background:transparent;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
     .seg button.active{background:var(--blue);color:#fff}
 
-    .filters{max-width:1200px;margin:6px auto 6px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .filters{max-width:1200px;margin:6px auto;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
     .input,.select{background:var(--input);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;outline:none}
+
+    .admin-tools{display:none;max-width:1200px;margin:8px auto;gap:10px;flex-wrap:wrap;justify-content:center}
     .results-note{max-width:1200px;margin:4px auto 0;color:var(--muted);font-size:13px}
 
     #grid{max-width:1200px;margin:10px auto 40px;padding:0 12px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
@@ -50,39 +54,40 @@
     .actions{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);flex-wrap:wrap}
     .used-btn.used{background:var(--red);color:#fff;border-color:transparent}
     .del-btn{background:#991b1b;border-color:#7f1d1d;color:#fff}
-    .empty{color:var(--muted);text-align:center;border:1px dashed var(--border);border-radius:10px;padding:28px;margin:12px}
 
-    /* Admin modal */
-    .modal-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
-    .modal{width:min(900px,95vw);background:var(--panel);border:1px solid var(--border);border-radius:16px;text-align:left;box-shadow:0 20px 60px #0008}
-    .modal header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
-    .modal .content{padding:16px;display:grid;gap:16px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .note{color:var(--muted);font-size:12px}
+    .dups{display:none;max-width:1200px;margin:8px auto;padding:10px;border:1px dashed var(--border);border-radius:10px;text-align:left;color:var(--muted)}
+    .dup-item{margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:8px}
 
-    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
-    @keyframes rotate{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-    @keyframes slideLR{0%,100%{transform:translateX(0)}25%{transform:translateX(-15px)}75%{transform:translateX(15px)}}
-    @keyframes popup{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
-    @keyframes fadeInOut{0%,100%{opacity:0;transform:translateY(10px)}50%{opacity:1;transform:translateY(0)}}
-
-    @media(max-width:768px){h1{font-size:64px}.quote{font-size:18px}}
+    @media(max-width:768px){
+      .title-main{font-size:64px}
+      .title-admin{font-size:54px}
+      .quote{font-size:18px}
+    }
   </style>
   <script async src="https://www.instagram.com/embed.js"></script>
 </head>
 <body>
-  <div class="header">
+
+  <!-- USER header (with image) -->
+  <div id="hdrUser" class="header-img">
     <img src="Fun.jpg" alt="Team VIBE">
-    <h1>Team VIBE</h1>
+    <h1 class="title-main">Team VIBE</h1>
     <div class="quote">“Valuing Ideas, Building engagement”</div>
   </div>
 
+  <!-- ADMIN header (no image) -->
+  <div id="hdrAdmin" class="header-admin" style="display:none">
+    <h1 class="title-admin">Team VIBE — Admin</h1>
+    <div class="quote">“Valuing Ideas, Building engagement”</div>
+  </div>
+
+  <!-- Counts + theme -->
   <div class="bar">
     <div class="pill total">Total: <span id="count-total">0</span></div>
     <div class="pill used">Used: <span id="count-used">0</span></div>
     <div class="pill available">Available: <span id="count-available">0</span></div>
 
-    <button id="adminOpen" class="btn">🔧 Admin</button>
+    <a id="adminToggleLink" class="btn" href="?admin=1">🔧 Admin</a>
 
     <div class="seg" role="group" aria-label="Theme">
       <button id="themeDark">Dark</button>
@@ -90,6 +95,19 @@
     </div>
   </div>
 
+  <!-- Admin-only tools -->
+  <div id="adminTools" class="admin-tools">
+    <label style="display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="toggleUsed" checked />
+      Enable “Mark as Used” & Delete on cards
+    </label>
+    <input id="addTitle" class="input" placeholder="Game title" style="min-width:260px" />
+    <input id="addURL" class="input" placeholder="https://..." style="min-width:320px" />
+    <button id="addBtn" class="btn primary">Add Game</button>
+    <button id="scanDup" class="btn">Scan for duplicates</button>
+  </div>
+
+  <!-- Filters -->
   <div class="filters">
     <input id="searchInput" class="input" placeholder="Search games..." />
     <select id="platformSelect" class="select">
@@ -111,43 +129,12 @@
   <div id="resultsNote" class="results-note"></div>
 
   <div id="grid"></div>
-  <div id="empty" class="empty" style="display:none;">No results match your filters.</div>
-
-  <!-- Admin Modal -->
-  <div id="adminBackdrop" class="modal-backdrop">
-    <div class="modal">
-      <header>
-        <strong>Admin Panel</strong>
-        <button id="adminClose" class="btn">✖</button>
-      </header>
-      <div class="content">
-        <div class="row">
-          <label><input type="checkbox" id="toggleUsed"> Enable "Mark as Used" & Delete on cards</label>
-        </div>
-
-        <div class="row">
-          <input class="input" id="addTitle" placeholder="Game title" />
-          <input class="input" id="addURL" placeholder="https://..." />
-          <button id="addBtn" class="btn primary">Add Game</button>
-        </div>
-        <div class="note">New games are saved to the server so everyone sees them.</div>
-
-        <div class="row" style="justify-content:space-between">
-          <div><strong>Duplicates</strong> <span class="note">(same URL ignoring query parameters)</span></div>
-          <button id="scanDup" class="btn">Scan for duplicates</button>
-        </div>
-        <div id="dupList" class="note">Run “Scan for duplicates” to see results.</div>
-      </div>
-    </div>
+  <div id="empty" style="display:none;color:#a0aec0;border:1px dashed var(--border);padding:24px;margin:12px;border-radius:10px;">
+    No results match your filters.
   </div>
 
-  <script src="script.js" defer></script>
-  <script>
-    // fun random animations for title/quote
-    const title=document.querySelector('h1'), quote=document.querySelector('.quote');
-    const tAn=['bounce','rotate','slideLR','popup'], qAn=['fadeInOut','bounce','slideLR','popup'];
-    const rnd=(el,arr)=>el&&(el.style.animationName=arr[Math.floor(Math.random()*arr.length)]);
-    rnd(title,tAn); rnd(quote,qAn); setInterval(()=>rnd(title,tAn),4000); setInterval(()=>rnd(quote,qAn),5000);
-  </script>
+  <div id="dupList" class="dups"></div>
+
+  <script src="app.js" defer></script>
 </body>
 </html>
