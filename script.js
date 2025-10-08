@@ -1,7 +1,7 @@
 /*******************
  * CONFIG
  *******************/
-const STORE_URL = 'https://script.google.com/macros/s/AKfycbwEqA1sh2ju6TXnwy5oaj0XJ27OXWPanHIZzz_AaxZeU4dJG1ofA3QvGKO2VH_V_vjTmg/exec';   // <-- paste your Apps Script /exec URL
+const STORE_URL = 'https://script.google.com/macros/s/AKfycbxsE3Qs82_-gGNDX-A5EOAuv2oXr9Gs4S5CvNTLyPuJ3n6EBsDIvxw0pJPhzkIcQnAvtA/exec';   // <-- paste your Apps Script /exec URL
 const STORE_KEY = '258006';               // must match ADMIN_KEY in Apps Script
 const EDIT_PIN  = '258006';
 const nocache   = () => `&t=${Date.now()}`;
