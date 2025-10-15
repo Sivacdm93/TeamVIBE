@@ -1,6 +1,6 @@
 /**************** CONFIG ****************/
-const STORE_URL = 'https://script.google.com/macros/s/AKfycbwHYNuyjCuGm9h4RWkerXDe_tvow1msAFmssh_qDDKKr5cnWbT2c3pFme8CoDTAa7GAhg/exec';   // <-- paste your Apps Script /exec URL
-const STORE_KEY = '258006';
+const STORE_URL = 'https://script.google.com/macros/s/AKfycbwHYNuyjCuGm9h4RWkerXDe_tvow1msAFmssh_qDDKKr5cnWbT2c3pFme8CoDTAa7GAhg/exec';
+const STORE_KEY = '258006';  // must match Apps Script ADMIN_KEY
 const ADMIN_PIN = '258006';
 const nocache   = () => `&t=${Date.now()}`;
 
@@ -114,8 +114,6 @@ function updateCounts(){
   document.getElementById('count-total').textContent = total;
   document.getElementById('count-used').textContent = used;
   document.getElementById('count-available').textContent = avail;
-  const note = document.getElementById('resultsNote');
-  if(note){ /* updated in renderGrid */ }
 }
 
 function makeCard(item){
@@ -239,28 +237,42 @@ function initTheme(){
     darkBtn.classList.toggle('active', t==='dark');
     lightBtn.classList.toggle('active', t==='light');
   };
-  darkBtn.onclick = ()=>{ applyTheme('dark'); sync(); };
-  lightBtn.onclick = ()=>{ applyTheme('light'); sync(); };
+  if(darkBtn)  darkBtn.onclick  = ()=>{ applyTheme('dark');  sync(); };
+  if(lightBtn) lightBtn.onclick = ()=>{ applyTheme('light'); sync(); };
   sync();
 }
 
 /**************** ADMIN GATE ***********/
-function gateAdminIfNeeded(){
-  // If /?admin=1 is present, we consider it an "admin page", even if locked
-  if (!wantAdmin) { 
-    adminMode = false; 
-    allowMarkUsed = false; 
-    return;
+/* Rules:
+   - On USER page (no ?admin=1): show "🔐 Admin" button. Clicking asks PIN; if OK -> set flag and redirect to ?admin=1
+   - On ADMIN page (?admin=1): never show unlock button. If not unlocked, prompt immediately.
+     Wrong/cancel -> redirect back to user page (remove ?admin=1).
+*/
+function gateAdmin(){
+  if (wantAdmin) {
+    // visiting admin page
+    if (sessionStorage.getItem('tv_admin_ok') === '1') {
+      adminMode = true;
+      allowMarkUsed = true;
+    } else {
+      const pin = prompt('Enter Admin PIN:');
+      if (pin === ADMIN_PIN) {
+        sessionStorage.setItem('tv_admin_ok','1');
+        adminMode = true;
+        allowMarkUsed = true;
+      } else {
+        // back to user page
+        const p = new URLSearchParams(location.search);
+        p.delete('admin');
+        location.search = p.toString();
+        return;
+      }
+    }
+  } else {
+    // normal user page
+    adminMode = false;
+    allowMarkUsed = false;
   }
-  // If already unlocked this session, enable admin
-  if (sessionStorage.getItem('tv_admin_ok') === '1') {
-    adminMode = true;
-    allowMarkUsed = true;
-    return;
-  }
-  // Stay "locked admin" (adminMode=false) until user taps Unlock
-  adminMode = false;
-  allowMarkUsed = false;
 }
 
 /**************** UI INIT **************/
@@ -273,46 +285,52 @@ function initUI(){
 
   // Headers
   if (wantAdmin) {
-    hdrUser.style.display = 'none';
-    hdrAdmin.style.display = '';
+    if(hdrUser)  hdrUser.style.display = 'none';
+    if(hdrAdmin) hdrAdmin.style.display = '';
   } else {
-    hdrUser.style.display = '';
-    hdrAdmin.style.display = 'none';
+    if(hdrUser)  hdrUser.style.display = '';
+    if(hdrAdmin) hdrAdmin.style.display = 'none';
   }
 
-  // Admin switch / unlock
-  if (wantAdmin && !adminMode) {
-    adminNav.style.display = '';
-    adminNav.textContent = '🔐 Unlock admin';
-    adminNav.onclick = () => {
-      const pin = prompt('Enter Admin PIN:');
-      if (pin === ADMIN_PIN) {
-        sessionStorage.setItem('tv_admin_ok', '1');
-        adminMode = true;
-        allowMarkUsed = true;
-        initUI();      // re-init UI to show tools
-        renderGrid();  // re-render with admin buttons
-      } else {
-        alert('Wrong PIN');
-      }
-    };
-    tools.style.display = 'none';
-    dups.style.display  = 'none';
+  // Admin switch / user view
+  if (!wantAdmin) {
+    // USER PAGE → show 🔐 Admin button
+    if(adminNav){
+      adminNav.style.display = '';
+      adminNav.textContent = '🔐 Admin';
+      adminNav.onclick = () => {
+        const pin = prompt('Enter Admin PIN:');
+        if (pin === ADMIN_PIN) {
+          sessionStorage.setItem('tv_admin_ok','1');
+          const p = new URLSearchParams(location.search);
+          p.set('admin','1');
+          location.search = p.toString(); // redirect to admin page
+        } else {
+          alert('Wrong PIN');
+        }
+      };
+    }
+    if(tools) tools.style.display = 'none';
+    if(dups)  dups.style.display  = 'none';
   } else if (adminMode) {
-    adminNav.style.display = '';
-    adminNav.textContent = '👤 User view';
-    adminNav.onclick = (e) => {
-      e.preventDefault();
-      const p = new URLSearchParams(location.search);
-      p.delete('admin');
-      location.search = p.toString();
-    };
-    tools.style.display = 'flex';
-    dups.style.display  = 'none';
+    // ADMIN PAGE (unlocked)
+    if(adminNav){
+      adminNav.style.display = '';
+      adminNav.textContent = '👤 User view';
+      adminNav.onclick = (e) => {
+        e.preventDefault();
+        const p = new URLSearchParams(location.search);
+        p.delete('admin');
+        location.search = p.toString();
+      };
+    }
+    if(tools) tools.style.display = 'flex';
+    if(dups)  dups.style.display  = 'none';
   } else {
-    adminNav.style.display = 'none';
-    tools.style.display    = 'none';
-    dups.style.display     = 'none';
+    // (shouldn't hit: we redirect away if lock fails)
+    if(adminNav) adminNav.style.display = 'none';
+    if(tools) tools.style.display = 'none';
+    if(dups)  dups.style.display  = 'none';
   }
 
   // Categories dropdown
@@ -322,76 +340,92 @@ function initUI(){
     return ['All categories', ...[...set].sort()];
   })();
   const sel = document.getElementById('categorySelect');
-  sel.innerHTML = `<option value="all">All categories</option>` + cats.slice(1).map(c=>`<option>${c}</option>`).join('');
+  if(sel) sel.innerHTML = `<option value="all">All categories</option>` + cats.slice(1).map(c=>`<option>${c}</option>`).join('');
 
   // Inputs ←→ State
-  document.getElementById('searchInput').value      = filterState.q;
-  document.getElementById('platformSelect').value   = filterState.platform;
-  document.getElementById('statusSelect').value     = filterState.status;
-  document.getElementById('categorySelect').value   = filterState.category;
+  const si = document.getElementById('searchInput');
+  const ps = document.getElementById('platformSelect');
+  const ss = document.getElementById('statusSelect');
+  const cs = document.getElementById('categorySelect');
+  const cf = document.getElementById('clearFilters');
 
-  // Filter events
-  document.getElementById('searchInput').addEventListener('input', e=>{ filterState.q = e.target.value.trim(); renderGrid(); });
-  document.getElementById('platformSelect').addEventListener('change', e=>{ filterState.platform = e.target.value; renderGrid(); });
-  document.getElementById('statusSelect').addEventListener('change', e=>{ filterState.status = e.target.value; renderGrid(); });
-  document.getElementById('categorySelect').addEventListener('change', e=>{ filterState.category = e.target.value; renderGrid(); });
-  document.getElementById('clearFilters').addEventListener('click', ()=>{
+  if(si) si.value = filterState.q;
+  if(ps) ps.value = filterState.platform;
+  if(ss) ss.value = filterState.status;
+  if(cs) cs.value = filterState.category;
+
+  if(si) si.addEventListener('input', e=>{ filterState.q = e.target.value.trim(); renderGrid(); });
+  if(ps) ps.addEventListener('change', e=>{ filterState.platform = e.target.value; renderGrid(); });
+  if(ss) ss.addEventListener('change', e=>{ filterState.status = e.target.value; renderGrid(); });
+  if(cs) cs.addEventListener('change', e=>{ filterState.category = e.target.value; renderGrid(); });
+  if(cf) cf.addEventListener('click', ()=>{
     filterState.q=''; filterState.platform='all'; filterState.status='all'; filterState.category='all';
-    document.getElementById('searchInput').value='';
-    document.getElementById('platformSelect').value='all';
-    document.getElementById('statusSelect').value='all';
-    document.getElementById('categorySelect').value='all';
+    if(si) si.value=''; if(ps) ps.value='all'; if(ss) ss.value='all'; if(cs) cs.value='all';
     renderGrid();
   });
 
   // Admin-only handlers
   if (adminMode) {
     const toggle = document.getElementById('toggleUsed');
-    toggle.checked = allowMarkUsed;
-    toggle.onchange = () => { allowMarkUsed = toggle.checked; renderGrid(); };
+    if(toggle){
+      toggle.checked = allowMarkUsed;
+      toggle.onchange = () => { allowMarkUsed = toggle.checked; renderGrid(); };
+    }
 
-    document.getElementById('addBtn').onclick = async ()=>{
-      const title = document.getElementById('addTitle').value.trim();
-      const url   = document.getElementById('addURL').value.trim();
-      if(!title || !url) return alert('Please provide title and URL');
-      if(!/^https?:\/\//i.test(url)) return alert('URL must start with http(s)');
-      if(items.some(i=>i.url.trim()===url.trim())) return alert('This URL already exists.');
-      try{
-        const saved = await apiAddItem({ title, url, cats:autoCats(title) });
-        items.push(saved);
-        document.getElementById('addTitle').value='';
-        document.getElementById('addURL').value='';
-        updateCounts();
-        renderGrid();
-        alert('Added!');
-      }catch(err){ alert('Add failed: ' + err.message); }
-    };
+    const addBtn = document.getElementById('addBtn');
+    const addTitle = document.getElementById('addTitle');
+    const addURL   = document.getElementById('addURL');
 
-    document.getElementById('scanDup').onclick = ()=>{
-      const box = document.getElementById('dupList');
-      const map = new Map();
-      items.forEach(it=>{ const k=normUrl(it.url); if(!map.has(k)) map.set(k,[]); map.get(k).push(it); });
-      const dups=[...map.values()].filter(a=>a.length>1);
-      box.style.display='block';
-      box.innerHTML = dups.length
-        ? dups.map(g=>`<div class="dup-item">${g.map(x=>`<div><b>${escapeHtml(x.title)}</b><br><span style="font-size:12px;color:var(--muted)">${escapeHtml(x.url)}</span></div>`).join('')}</div>`).join('')
-        : '<b>No duplicates found.</b>';
-    };
+    if(addBtn){
+      addBtn.onclick = async ()=>{
+        const title = (addTitle?.value||'').trim();
+        const url   = (addURL?.value||'').trim();
+        if(!title || !url) return alert('Please provide title and URL');
+        if(!/^https?:\/\//i.test(url)) return alert('URL must start with http(s)');
+        if(items.some(i=>i.url.trim()===url.trim())) return alert('This URL already exists.');
+        try{
+          const saved = await apiAddItem({ title, url, cats:autoCats(title) });
+          items.push(saved);
+          if(addTitle) addTitle.value='';
+          if(addURL)   addURL.value='';
+          updateCounts();
+          renderGrid();
+          alert('Added!');
+        }catch(err){ alert('Add failed: ' + err.message); }
+      };
+    }
+
+    const scanDup = document.getElementById('scanDup');
+    if(scanDup){
+      scanDup.onclick = ()=>{
+        const box = document.getElementById('dupList');
+        const map = new Map();
+        items.forEach(it=>{ const k=normUrl(it.url); if(!map.has(k)) map.set(k,[]); map.get(k).push(it); });
+        const dups=[...map.values()].filter(a=>a.length>1);
+        if(box){
+          box.style.display='block';
+          box.innerHTML = dups.length
+            ? dups.map(g=>`<div class="dup-item">${g.map(x=>`<div><b>${escapeHtml(x.title)}</b><br><span style="font-size:12px;color:var(--muted)">${escapeHtml(x.url)}</span></div>`).join('')}</div>`).join('')
+            : '<b>No duplicates found.</b>';
+        }
+      };
+    }
   }
 }
 
 /**************** INIT ******************/
-function gateAndThemeThenInit(){
-  gateAdminIfNeeded();
-  initTheme();
-  (async function(){
+function start(){
+  gateAdmin();       // handle unlock flow & redirects
+  initTheme();       // theme always
+  (async ()=>{
     const data = await apiGet();
     items = (data.items||[]).map((it,idx)=>({ id: it.id ?? String(idx+1)+'-'+(it.url||'').slice(-6), ...it }));
     usedStore = new Set(data.used||[]);
     updateCounts();
     initUI();
     renderGrid();
-    // keep Used counts in sync if another admin changes it
+
+    // keep Used in sync in case another admin edited
     setInterval(async ()=>{
       try{
         const d=await apiGet();
@@ -403,4 +437,4 @@ function gateAndThemeThenInit(){
   })();
 }
 
-gateAndThemeThenInit();
+start();
