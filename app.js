@@ -126,9 +126,12 @@ function passesFilters(it){
   }
   const platform=detectPlatform(it.url);
   if(filterState.platform!=='all' && platform!==filterState.platform) return false;
-  const isUsed=usedStore.has(it.url);
+
+  // Used status based on current items ONLY
+  const isUsed = usedStore.has(it.url);
   if(filterState.status==='used' && !isUsed) return false;
   if(filterState.status==='available' && isUsed) return false;
+
   const cats=it.cats||autoCats(it.title);
   if(filterState.category!=='all' && !cats.includes(filterState.category)) return false;
   return true;
@@ -137,7 +140,10 @@ function passesFilters(it){
 /**************** RENDER ****************/
 function updateCounts(){
   const total = items.length;
-  const used = [...usedStore].length;
+
+  // ✅ FIX: count only those used URLs that exist in the current items list
+  const used = items.filter(i => usedStore.has(i.url)).length;
+
   const avail = total - used;
   document.getElementById('count-total').textContent = total;
   document.getElementById('count-used').textContent = used;
@@ -149,7 +155,7 @@ function makeCard(item){
   const card=document.createElement('div');
   card.className='card';
 
-  // Embeds: Instagram via official blockquote + embed.js; YouTube via iframe
+  // Embeds: Instagram via blockquote + embed.js; YouTube via iframe
   let media='';
   if(platform==='instagram'){
     const permalink = igCanonical(item.url);
