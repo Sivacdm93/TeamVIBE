@@ -275,33 +275,28 @@ function initUI(){
       if(!dups.length){ box.innerHTML='<b>No duplicates found.</b>'; return; }
       box.innerHTML=dups.map(g=>`<div class="dup-item">${g.map(x=>`<div><b>${escapeHtml(x.title)}</b><br><span style="font-size:12px;color:var(--muted)">${escapeHtml(x.url)}</span></div>`).join('')}</div>`).join('');
     });
-
-    // CSV exports
-    const toCSV = arr => {
-      const lines = [['Title','URL'], ...arr.map(i=>[i.title||'', i.url||''])];
-      return lines.map(r=>r.map(v=>{
-        const s=String(v??'');
-        return s.includes(',')||s.includes('"')||s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s;
-      }).join(',')).join('\n');
-    };
-    const downloadCSV = (rows, name) => {
-      const blob=new Blob([toCSV(rows)], {type:'text/csv;charset=utf-8;'});
-      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${name}.csv`; a.click(); URL.revokeObjectURL(a.href);
-    };
-    const filteredItems = () => items.filter(passesFilters);
-    const usedItems = () => items.filter(i=>usedStore.has(i.url));
-    const availItems = () => items.filter(i=>!usedStore.has(i.url));
-    const categoryItems = () => {
-      if(filterState.category==='all') return items;
-      return items.filter(i=>(i.cats||autoCats(i.title)).includes(filterState.category));
-    };
-
-    document.getElementById('expAll').onclick = ()=> downloadCSV(items,'games_all');
-    document.getElementById('expFiltered').onclick = ()=> downloadCSV(filteredItems(),'games_filtered');
-    document.getElementById('expUsed').onclick = ()=> downloadCSV(usedItems(),'games_used');
-    document.getElementById('expAvail').onclick = ()=> downloadCSV(availItems(),'games_available');
-    document.getElementById('expCat').onclick = ()=> downloadCSV(categoryItems(),'games_category');
   }
+
+  /* THEME — robust: set on <html> and <body> */
+  const KEY='tv_theme';
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    document.body.setAttribute('data-theme', t);
+    localStorage.setItem(KEY, t);
+  }
+  // initial
+  applyTheme(localStorage.getItem(KEY) || 'dark');
+
+  const darkBtn=document.getElementById('themeDark');
+  const lightBtn=document.getElementById('themeLight');
+  const sync = () => {
+    const t = localStorage.getItem(KEY) || 'dark';
+    darkBtn.classList.toggle('active', t==='dark');
+    lightBtn.classList.toggle('active', t==='light');
+  };
+  darkBtn.onclick = () => { applyTheme('dark'); sync(); };
+  lightBtn.onclick = () => { applyTheme('light'); sync(); };
+  sync();
 }
 
 /**************** INIT ******************/
@@ -325,7 +320,7 @@ readFiltersFromURLOnLoad();
 
 (async function init(){
   const data=await apiGet();
-  // items should already contain id if your server code sets it. Fallback assign ephemeral ids to avoid UI dup issues.
+  // items should already contain id; if not, make ephemeral ids to keep UI operations safe.
   items=(data.items||[]).map((it,idx)=>({ id: it.id ?? String(idx + 1) + '-' + (it.url||'').slice(-6), ...it }));
   usedStore=new Set(data.used||[]);
   items.forEach(it=>{ if(!it.cats) it.cats=autoCats(it.title); });
