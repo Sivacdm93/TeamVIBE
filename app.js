@@ -71,6 +71,8 @@ const ytEmbed = u => {
   return id?`https://www.youtube.com/embed/${id}`:null;
 };
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* Auto-categories */
 const CAT_RULES = [
   {key:'bottle',label:'Bottle'},{key:'cup',label:'Cup'},{key:'straw',label:'Straw'},
   {key:'balloon',label:'Balloon'},{key:'ball',label:'Ball'},{key:'paper',label:'Paper'},
@@ -83,6 +85,26 @@ const autoCats = t => {
   CAT_RULES.forEach(r=>s.includes(r.key)&&out.push(r.label));
   return out.length?out:['General'];
 };
+
+/* Normalize Instagram URL to canonical + get /embed URL */
+function cleanInstagramUrl(u){
+  try{
+    const x = new URL(u);
+    // only keep origin + pathname and ensure trailing slash
+    let path = x.pathname;
+    if(!path.endsWith('/')) path += '/';
+    return `https://www.instagram.com${path}`;
+  }catch{
+    return u;
+  }
+}
+function igEmbedUrl(u){
+  const base = cleanInstagramUrl(u);
+  // reels and posts both support /embed
+  return `${base}embed`;
+}
+
+/* For duplicate scan: normalize URL minimally */
 function normUrl(u){
   try{
     const x=new URL(u);
@@ -121,16 +143,30 @@ function makeCard(item){
   const card=document.createElement('div');
   card.className='card';
 
-  // Embeds visible in BOTH admin & user
+  // Embeds (Instagram via iframe; YouTube via iframe)
   let media='';
   if(platform==='instagram'){
-    media=`<div class="media"><blockquote class="instagram-media" data-instgrm-permalink="${item.url}" data-instgrm-version="14"></blockquote></div>`;
+    media = `
+      <div class="media">
+        <iframe
+          src="${igEmbedUrl(item.url)}"
+          width="100%"
+          height="480"
+          frameborder="0"
+          scrolling="no"
+          allowtransparency="true"
+          allowfullscreen>
+        </iframe>
+      </div>`;
   }else if(platform==='youtube' && ytEmbed(item.url)){
-    media=`<div class="media"><iframe width="100%" height="360" src="${ytEmbed(item.url)}" frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+    media = `
+      <div class="media">
+        <iframe width="100%" height="360" src="${ytEmbed(item.url)}" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>`;
   }else{
-    media=`<div class="media" style="padding:10px"><a class="btn" href="${item.url}" target="_blank">Open link</a></div>`;
+    media = `<div class="media" style="padding:10px"><a class="btn" href="${item.url}" target="_blank">Open link</a></div>`;
   }
 
   const isUsed = usedStore.has(item.url);
@@ -214,9 +250,6 @@ function renderGrid(){
     filtered.forEach(i => grid.appendChild(makeCard(i)));
   }
 
-  // Process Instagram embeds after DOM updates
-  try{ window.instgrm?.Embeds?.process(); }catch{}
-
   const note = document.getElementById('resultsNote');
   if(note) note.textContent = `${filtered.length} of ${items.length} shown (filters applied)`;
 }
@@ -234,18 +267,18 @@ function initTheme(){
   const darkBtn  = document.getElementById('themeDark');
   const lightBtn = document.getElementById('themeLight');
   const sync=()=>{ const t=localStorage.getItem(KEY)||'dark';
-    darkBtn.classList.toggle('active', t==='dark');
-    lightBtn.classList.toggle('active', t==='light');
+    darkBtn?.classList.toggle('active', t==='dark');
+    lightBtn?.classList.toggle('active', t==='light');
   };
-  if(darkBtn)  darkBtn.onclick  = ()=>{ applyTheme('dark');  sync(); };
-  if(lightBtn) lightBtn.onclick = ()=>{ applyTheme('light'); sync(); };
+  darkBtn && (darkBtn.onclick  = ()=>{ applyTheme('dark');  sync(); });
+  lightBtn && (lightBtn.onclick = ()=>{ applyTheme('light'); sync(); });
   sync();
 }
 
 /**************** ADMIN GATE ***********/
 /* Rules:
    - On USER page (no ?admin=1): show "🔐 Admin" button. Clicking asks PIN; if OK -> set flag and redirect to ?admin=1
-   - On ADMIN page (?admin=1): never show unlock button. If not unlocked, prompt immediately.
+   - On ADMIN page (?admin=1): no unlock button. If not unlocked, prompt immediately.
      Wrong/cancel -> redirect back to user page (remove ?admin=1).
 */
 function gateAdmin(){
@@ -285,11 +318,11 @@ function initUI(){
 
   // Headers
   if (wantAdmin) {
-    if(hdrUser)  hdrUser.style.display = 'none';
-    if(hdrAdmin) hdrAdmin.style.display = '';
+    hdrUser && (hdrUser.style.display = 'none');
+    hdrAdmin && (hdrAdmin.style.display = '');
   } else {
-    if(hdrUser)  hdrUser.style.display = '';
-    if(hdrAdmin) hdrAdmin.style.display = 'none';
+    hdrUser && (hdrUser.style.display = '');
+    hdrAdmin && (hdrAdmin.style.display = 'none');
   }
 
   // Admin switch / user view
@@ -310,8 +343,8 @@ function initUI(){
         }
       };
     }
-    if(tools) tools.style.display = 'none';
-    if(dups)  dups.style.display  = 'none';
+    tools && (tools.style.display = 'none');
+    dups  && (dups.style.display  = 'none');
   } else if (adminMode) {
     // ADMIN PAGE (unlocked)
     if(adminNav){
@@ -324,13 +357,13 @@ function initUI(){
         location.search = p.toString();
       };
     }
-    if(tools) tools.style.display = 'flex';
-    if(dups)  dups.style.display  = 'none';
+    tools && (tools.style.display = 'flex');
+    dups  && (dups.style.display  = 'none');
   } else {
-    // (shouldn't hit: we redirect away if lock fails)
-    if(adminNav) adminNav.style.display = 'none';
-    if(tools) tools.style.display = 'none';
-    if(dups)  dups.style.display  = 'none';
+    // (shouldn't hit because we redirect away if lock fails)
+    adminNav && (adminNav.style.display = 'none');
+    tools    && (tools.style.display    = 'none');
+    dups     && (dups.style.display     = 'none');
   }
 
   // Categories dropdown
@@ -340,7 +373,7 @@ function initUI(){
     return ['All categories', ...[...set].sort()];
   })();
   const sel = document.getElementById('categorySelect');
-  if(sel) sel.innerHTML = `<option value="all">All categories</option>` + cats.slice(1).map(c=>`<option>${c}</option>`).join('');
+  sel && (sel.innerHTML = `<option value="all">All categories</option>` + cats.slice(1).map(c=>`<option>${c}</option>`).join(''));
 
   // Inputs ←→ State
   const si = document.getElementById('searchInput');
@@ -349,18 +382,18 @@ function initUI(){
   const cs = document.getElementById('categorySelect');
   const cf = document.getElementById('clearFilters');
 
-  if(si) si.value = filterState.q;
-  if(ps) ps.value = filterState.platform;
-  if(ss) ss.value = filterState.status;
-  if(cs) cs.value = filterState.category;
+  si && (si.value = filterState.q);
+  ps && (ps.value = filterState.platform);
+  ss && (ss.value = filterState.status);
+  cs && (cs.value = filterState.category);
 
-  if(si) si.addEventListener('input', e=>{ filterState.q = e.target.value.trim(); renderGrid(); });
-  if(ps) ps.addEventListener('change', e=>{ filterState.platform = e.target.value; renderGrid(); });
-  if(ss) ss.addEventListener('change', e=>{ filterState.status = e.target.value; renderGrid(); });
-  if(cs) cs.addEventListener('change', e=>{ filterState.category = e.target.value; renderGrid(); });
-  if(cf) cf.addEventListener('click', ()=>{
+  si && si.addEventListener('input', e=>{ filterState.q = e.target.value.trim(); renderGrid(); });
+  ps && ps.addEventListener('change', e=>{ filterState.platform = e.target.value; renderGrid(); });
+  ss && ss.addEventListener('change', e=>{ filterState.status = e.target.value; renderGrid(); });
+  cs && cs.addEventListener('change', e=>{ filterState.category = e.target.value; renderGrid(); });
+  cf && cf.addEventListener('click', ()=>{
     filterState.q=''; filterState.platform='all'; filterState.status='all'; filterState.category='all';
-    if(si) si.value=''; if(ps) ps.value='all'; if(ss) ss.value='all'; if(cs) cs.value='all';
+    si && (si.value=''); ps && (ps.value='all'); ss && (ss.value='all'); cs && (cs.value='all');
     renderGrid();
   });
 
@@ -386,8 +419,8 @@ function initUI(){
         try{
           const saved = await apiAddItem({ title, url, cats:autoCats(title) });
           items.push(saved);
-          if(addTitle) addTitle.value='';
-          if(addURL)   addURL.value='';
+          addTitle && (addTitle.value='');
+          addURL   && (addURL.value='');
           updateCounts();
           renderGrid();
           alert('Added!');
