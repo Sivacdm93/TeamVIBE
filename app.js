@@ -86,30 +86,36 @@ const autoCats = t => {
   return out.length?out:['General'];
 };
 
-/* Normalize Instagram URL to canonical + get /embed URL */
-function cleanInstagramUrl(u){
+/* Normalize Instagram URL to canonical permalink (strip params; ensure trailing slash) */
+function igCanonical(u){
   try{
     const x = new URL(u);
-    // only keep origin + pathname and ensure trailing slash
     let path = x.pathname;
     if(!path.endsWith('/')) path += '/';
     return `https://www.instagram.com${path}`;
-  }catch{
-    return u;
-  }
-}
-function igEmbedUrl(u){
-  const base = cleanInstagramUrl(u);
-  // reels and posts both support /embed
-  return `${base}embed`;
+  }catch{ return u; }
 }
 
-/* For duplicate scan: normalize URL minimally */
+/* Duplicate normalization */
 function normUrl(u){
   try{
     const x=new URL(u);
     return (x.hostname+x.pathname).replace(/^www\./,'').toLowerCase().replace(/\/+$/,'');
   }catch{ return (u||'').toLowerCase().trim(); }
+}
+
+/* Ensure Instagram embed.js is present */
+function ensureInstaScript(){
+  if(window.instgrm?.Embeds?.process) return Promise.resolve();
+  return new Promise((resolve)=>{
+    const ex = document.querySelector('script[src*="instagram.com/embed.js"]');
+    if(ex){ ex.addEventListener('load', ()=>resolve()); return; }
+    const s = document.createElement('script');
+    s.src = 'https://www.instagram.com/embed.js';
+    s.async = true;
+    s.onload = ()=>resolve();
+    document.head.appendChild(s);
+  });
 }
 
 /************** FILTERS *****************/
@@ -143,20 +149,13 @@ function makeCard(item){
   const card=document.createElement('div');
   card.className='card';
 
-  // Embeds (Instagram via iframe; YouTube via iframe)
+  // Embeds: Instagram via official blockquote + embed.js; YouTube via iframe
   let media='';
   if(platform==='instagram'){
+    const permalink = igCanonical(item.url);
     media = `
       <div class="media">
-        <iframe
-          src="${igEmbedUrl(item.url)}"
-          width="100%"
-          height="480"
-          frameborder="0"
-          scrolling="no"
-          allowtransparency="true"
-          allowfullscreen>
-        </iframe>
+        <blockquote class="instagram-media" data-instgrm-permalink="${permalink}" data-instgrm-version="14"></blockquote>
       </div>`;
   }else if(platform==='youtube' && ytEmbed(item.url)){
     media = `
@@ -238,7 +237,7 @@ function makeCard(item){
   return card;
 }
 
-function renderGrid(){
+async function renderGrid(){
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
   const filtered = items.filter(passesFilters);
@@ -249,6 +248,12 @@ function renderGrid(){
     document.getElementById('empty').style.display='none';
     filtered.forEach(i => grid.appendChild(makeCard(i)));
   }
+
+  // After cards are in the DOM, (re)load Instagram embed script and process
+  try{
+    await ensureInstaScript();
+    window.instgrm?.Embeds?.process();
+  }catch{}
 
   const note = document.getElementById('resultsNote');
   if(note) note.textContent = `${filtered.length} of ${items.length} shown (filters applied)`;
@@ -276,11 +281,6 @@ function initTheme(){
 }
 
 /**************** ADMIN GATE ***********/
-/* Rules:
-   - On USER page (no ?admin=1): show "🔐 Admin" button. Clicking asks PIN; if OK -> set flag and redirect to ?admin=1
-   - On ADMIN page (?admin=1): no unlock button. If not unlocked, prompt immediately.
-     Wrong/cancel -> redirect back to user page (remove ?admin=1).
-*/
 function gateAdmin(){
   if (wantAdmin) {
     // visiting admin page
